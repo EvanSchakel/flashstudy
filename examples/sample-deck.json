@@ -1,0 +1,7 @@
+{
+  "name": "Sample Deck",
+  "cards": [
+    { "question": "What is Java?", "answer": "A programming language." },
+    { "question": "What does OOP stand for?", "answer": "Object-Oriented Programming." }
+  ]
+}
