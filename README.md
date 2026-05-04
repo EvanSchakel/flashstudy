@@ -49,3 +49,7 @@ Contributing
 
 Contributions are welcome — open an issue or submit a pull request. If you publish your own decks, consider adding them under `examples/`.
 
+Repository
+
+The project is published at: https://github.com/EvanSchakel/flashstudy
+
