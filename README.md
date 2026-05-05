@@ -14,6 +14,20 @@ Requirements
 - Java 11+
 - Maven
 
+Architecture Overview
+
+- **Domain (`com.example.flashstudy.model`)**: Contains core application models like `Flashcard` and `Deck` with basic behavior and data validation.
+- **Persistence (`com.example.flashstudy.persistence`)**: The `DeckStore` class manages saving and loading decks as JSON files to the user's local disk.
+- **UI/CLI (`com.example.flashstudy.Main` & `com.example.flashstudy.service`)**: The entrypoint and interactive prompt to manage decks and study sessions.
+
+Running Tests
+
+The project includes a suite of JUnit tests. You can run them via Maven:
+
+```bash
+mvn test
+```
+
 Quick start
 
 Build the project:

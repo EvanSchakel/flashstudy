@@ -11,10 +11,10 @@ public class Flashcard {
     }
 
     public Flashcard(String question, String answer) {
-        if (question == null || answer == null)
+        if (question == null || question.isBlank() || answer == null || answer.isBlank())
             throw new IllegalArgumentException("question and answer required");
-        this.question = question;
-        this.answer = answer;
+        this.question = question.trim();
+        this.answer = answer.trim();
         this.correctCount = 0;
         this.attemptCount = 0;
     }

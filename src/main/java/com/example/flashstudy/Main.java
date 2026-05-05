@@ -27,8 +27,15 @@ public class Main {
 
     private static void loop() {
         while (true) {
-            System.out.println(
-                    "\nFlashStudy - menu:\n1) List decks\n2) Create deck\n3) Add card\n4) Study deck\n5) Delete deck\n0) Exit\nChoose: ");
+            System.out.println("\n--------------------------------------------------");
+            System.out.print("FlashStudy - menu:\n" +
+                    "1) List decks\n" +
+                    "2) Create deck\n" +
+                    "3) Add card\n" +
+                    "4) Study deck\n" +
+                    "5) Delete deck\n" +
+                    "0) Exit\n" +
+                    "Choose: ");
 
             if (!scanner.hasNextLine()) {
                 System.out.println("\nExiting...");
@@ -36,6 +43,7 @@ public class Main {
             }
 
             String choice = scanner.nextLine().trim();
+            System.out.println("--------------------------------------------------");
             try {
                 switch (choice) {
                     case "1":
@@ -57,7 +65,7 @@ public class Main {
                         System.out.println("Bye!");
                         return;
                     default:
-                        System.out.println("Unknown option");
+                        System.out.println("Unknown option.");
                 }
             } catch (Exception e) {
                 System.out.println("Error: " + e.getMessage());
@@ -104,8 +112,12 @@ public class Main {
     private static void createDeck() throws Exception {
         System.out.print("Enter deck name: ");
         String name = scanner.nextLine().trim();
-        if (name.isEmpty()) {
-            System.out.println("Name required");
+        if (name.isBlank()) {
+            System.out.println("Name required.");
+            return;
+        }
+        if (store.loadDeck(name) != null) {
+            System.out.println("Deck already exists.");
             return;
         }
         Deck deck = new Deck(name);
@@ -117,10 +129,21 @@ public class Main {
         Deck deck = chooseDeck();
         if (deck == null)
             return;
-        System.out.print("Question: ");
-        String q = scanner.nextLine().trim();
-        System.out.print("Answer: ");
-        String a = scanner.nextLine().trim();
+
+        String q = "";
+        while (q.isBlank()) {
+            System.out.print("Question: ");
+            q = scanner.nextLine().trim();
+            if (q.isBlank()) System.out.println("Question cannot be empty.");
+        }
+
+        String a = "";
+        while (a.isBlank()) {
+            System.out.print("Answer: ");
+            a = scanner.nextLine().trim();
+            if (a.isBlank()) System.out.println("Answer cannot be empty.");
+        }
+
         Flashcard card = new Flashcard(q, a);
         deck.addCard(card);
         store.saveDeck(deck);

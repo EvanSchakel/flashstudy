@@ -14,4 +14,21 @@ public class DeckTest {
         d.removeCard(0);
         assertEquals(0, d.size());
     }
+
+    @Test
+    public void constructorRejectsNullOrBlank() {
+        assertThrows(IllegalArgumentException.class, () -> new Deck(null));
+        assertThrows(IllegalArgumentException.class, () -> new Deck(""));
+        assertThrows(IllegalArgumentException.class, () -> new Deck("   "));
+    }
+
+    @Test
+    public void removeCardOutOfBounds() {
+        Deck d = new Deck("Test");
+        assertThrows(IndexOutOfBoundsException.class, () -> d.removeCard(0));
+        assertThrows(IndexOutOfBoundsException.class, () -> d.removeCard(-1));
+
+        d.addCard(new Flashcard("Q", "A"));
+        assertThrows(IndexOutOfBoundsException.class, () -> d.removeCard(1));
+    }
 }

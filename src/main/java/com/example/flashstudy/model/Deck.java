@@ -31,6 +31,9 @@ public class Deck {
     }
 
     public Flashcard removeCard(int index) {
+        if (index < 0 || index >= cards.size()) {
+            throw new IndexOutOfBoundsException("Card index " + index + " is out of bounds for deck size " + cards.size());
+        }
         return cards.remove(index);
     }
 

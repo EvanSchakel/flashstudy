@@ -42,11 +42,8 @@ public class DeckStore {
     }
 
     public List<Deck> loadAll() throws IOException {
-        // ⚡ Bolt Optimization: Use parallel stream to speed up reading and parsing of many small JSON files.
-        // Impact: Reduces load time by ~58% (e.g. 2003ms -> 835ms for 10000 decks).
         try (java.util.stream.Stream<Path> stream = Files.list(dir)) {
             return stream.filter(p -> p.toString().endsWith(".json"))
-                         .parallel()
                          .map(p -> {
                              try (Reader r = Files.newBufferedReader(p)) {
                                  return gson.fromJson(r, Deck.class);
