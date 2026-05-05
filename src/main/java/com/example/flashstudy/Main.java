@@ -14,16 +14,27 @@ public class Main {
     private static Scanner scanner;
 
     public static void main(String[] args) {
-        Path dataDir = Paths.get(System.getProperty("user.home"), ".flashstudy");
-        store = new DeckStore(dataDir);
-        scanner = new Scanner(System.in);
-        loop();
+        try {
+            Path dataDir = Paths.get(System.getProperty("user.home"), ".flashstudy");
+            store = new DeckStore(dataDir);
+            scanner = new Scanner(System.in);
+            loop();
+        } catch (Throwable t) {
+            System.err.println("A fatal application error occurred. Exiting securely.");
+            System.exit(1);
+        }
     }
 
     private static void loop() {
         while (true) {
             System.out.println(
                     "\nFlashStudy - menu:\n1) List decks\n2) Create deck\n3) Add card\n4) Study deck\n5) Delete deck\n0) Exit\nChoose: ");
+
+            if (!scanner.hasNextLine()) {
+                System.out.println("\nExiting...");
+                break;
+            }
+
             String choice = scanner.nextLine().trim();
             try {
                 switch (choice) {
