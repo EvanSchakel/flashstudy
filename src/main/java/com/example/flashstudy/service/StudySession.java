@@ -16,7 +16,7 @@ public class StudySession {
 
     public void run(Scanner scanner) {
         if (deck == null || deck.size() == 0) {
-            System.out.println("Deck is empty.");
+            System.out.println("Deck is empty. Try adding cards using option 3.");
             return;
         }
         List<Flashcard> session = new ArrayList<>(deck.getCards());

@@ -68,7 +68,7 @@ public class Main {
     private static void listDecks() throws Exception {
         List<Deck> decks = store.loadAll();
         if (decks.isEmpty()) {
-            System.out.println("No decks found.");
+            System.out.println("No decks found. Try creating one using option 2.");
             return;
         }
         System.out.println("Available decks:");
@@ -81,7 +81,7 @@ public class Main {
     private static Deck chooseDeck() throws Exception {
         List<Deck> decks = store.loadAll();
         if (decks.isEmpty()) {
-            System.out.println("No decks available.");
+            System.out.println("No decks available. Try creating one using option 2.");
             return null;
         }
         for (int i = 0; i < decks.size(); i++)
