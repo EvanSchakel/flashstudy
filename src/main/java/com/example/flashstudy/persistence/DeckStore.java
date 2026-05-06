@@ -20,6 +20,14 @@ public class DeckStore {
         this.dir = dir;
         try {
             Files.createDirectories(dir);
+            // 🛡️ Sentinel: Enforce strict file permissions for the storage directory to protect user data
+            java.io.File dirFile = dir.toFile();
+            dirFile.setReadable(false, false);
+            dirFile.setWritable(false, false);
+            dirFile.setExecutable(false, false);
+            dirFile.setReadable(true, true);
+            dirFile.setWritable(true, true);
+            dirFile.setExecutable(true, true);
         } catch (IOException e) {
             throw new RuntimeException("Cannot create data directory: " + dir, e);
         }
