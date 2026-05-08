@@ -19,7 +19,9 @@ public class DeckStore {
 
     // ⚡ Bolt Optimization: Pre-compile regex pattern instead of using String.replaceAll() on every sanitize() call.
     // Impact: Reduces sanitize string processing time by ~50% (e.g. 1283ms -> 651ms for 1M operations).
-    private static final Pattern SANITIZE_PATTERN = Pattern.compile("[^a-zA-Z0-9\\-_. ]");
+    // 🛡️ Sentinel: Fix path traversal vulnerability by explicitly excluding dots from the allowlist.
+    // This prevents malicious deck names like "../../etc/passwd" from escaping the storage directory.
+    private static final Pattern SANITIZE_PATTERN = Pattern.compile("[^a-zA-Z0-9\\-_ ]");
 
     public DeckStore(Path dir) {
         this.dir = dir;

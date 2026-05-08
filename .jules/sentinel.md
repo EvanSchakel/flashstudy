@@ -6,3 +6,7 @@
 **Vulnerability:** Data storage directory for flashcards lacked explicit permission constraints, risking unauthorized read/write access to user data.
 **Learning:** Default directory creation (Files.createDirectories) uses umask, which can be overly permissive.
 **Prevention:** Always explicitly set restrictive permissions (e.g. owner-only readable/writable/executable) on directories containing sensitive user data via `File#setReadable(false, false)` followed by `File#setReadable(true, true)` (and similarly for writable and executable).
+## 2024-05-08 - Prevent Path Traversal in File Saving
+**Vulnerability:** The sanitization regex for file names allowed dots (`.`), which could permit a malicious user to craft a deck name like `../../etc/passwd` to overwrite arbitrary files when saving a deck, escaping the designated storage directory.
+**Learning:** Allowlisting characters for file names is the correct approach, but one must carefully consider what characters are safe. Allowing dots specifically opens up the possibility for directory traversal via `..` sequences.
+**Prevention:** Always use a strict whitelist for file name sanitization that explicitly excludes dots (e.g., `[^a-zA-Z0-9\-_ ]`) when the user controls the filename and it's resolved against a base directory.
