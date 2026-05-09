@@ -6,3 +6,7 @@
 **Vulnerability:** Data storage directory for flashcards lacked explicit permission constraints, risking unauthorized read/write access to user data.
 **Learning:** Default directory creation (Files.createDirectories) uses umask, which can be overly permissive.
 **Prevention:** Always explicitly set restrictive permissions (e.g. owner-only readable/writable/executable) on directories containing sensitive user data via `File#setReadable(false, false)` followed by `File#setReadable(true, true)` (and similarly for writable and executable).
+## 2026-05-09 - [Fix path traversal in file download]
+**Vulnerability:** File names for deck storage were sanitized using a regex that allowed periods ('.'). This allowed for path traversal by using '..' in the deck name, potentially leading to unauthorized file access or overwriting.
+**Learning:** Whitelists for file names must be extremely strict and explicitly exclude periods, as they are the building blocks of directory traversal attacks.
+**Prevention:** Always use a strict whitelist (e.g., `[^a-zA-Z0-9\-_ ]`) for file names that explicitly excludes '.' to prevent path traversal via '..' sequences.
