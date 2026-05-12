@@ -6,3 +6,8 @@
 **Vulnerability:** Data storage directory for flashcards lacked explicit permission constraints, risking unauthorized read/write access to user data.
 **Learning:** Default directory creation (Files.createDirectories) uses umask, which can be overly permissive.
 **Prevention:** Always explicitly set restrictive permissions (e.g. owner-only readable/writable/executable) on directories containing sensitive user data via `File#setReadable(false, false)` followed by `File#setReadable(true, true)` (and similarly for writable and executable).
+
+## 2024-05-12 - [Critical Fix] Prevent Path Traversal in DeckStore
+**Vulnerability:** A path traversal vulnerability was discovered in `DeckStore.java`. The `SANITIZE_PATTERN` regex used to sanitize deck names allowed the dot (`.`) character. This meant a user could create a deck named `../../etc/passwd` and the system would potentially attempt to read, write or delete files outside of the intended `~/.flashstudy` directory, potentially exposing or destroying sensitive system files.
+**Learning:** File name sanitization must be explicitly strict. Simply replacing "bad" characters is often insufficient. It's safer to use an allowlist approach, explicitly allowing only known-safe characters (e.g., alphanumeric, hyphens, and spaces). Specifically, allowing dots (`.`) in file name sanitization logic creates a vector for directory traversal (`..`).
+**Prevention:** Always use a strict allowlist for file name sanitization that explicitly excludes characters capable of directory traversal, such as dots (`.`) and slashes (`/`, `\`). Ensure regex patterns like `[^a-zA-Z0-9\-_ ]` do not inadvertently include problematic characters.
