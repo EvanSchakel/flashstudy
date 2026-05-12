@@ -22,20 +22,34 @@ public class StudySession {
         List<Flashcard> session = new ArrayList<>(deck.getCards());
         Collections.shuffle(session);
         int correct = 0;
+        int attempted = 0;
         for (int i = 0; i < session.size(); i++) {
             Flashcard c = session.get(i);
-            System.out.printf("\nCard %d/%d\nQuestion:\n%s\n\nPress Enter to reveal answer...", i + 1, session.size(),
+            System.out.printf("\nCard %d/%d\nQuestion:\n%s\n\nPress Enter to reveal answer (or 'q' to quit)...", i + 1, session.size(),
                     c.getQuestion());
-            scanner.nextLine();
+            String input = scanner.nextLine().trim().toLowerCase();
+            if (input.equals("q") || input.equals("'q'")) {
+                System.out.println("\nStudy session aborted.");
+                break;
+            }
             System.out.println("Answer:\n" + c.getAnswer());
-            System.out.print("Did you get it right? (y/n): ");
+            System.out.print("Did you get it right? (y/n, 'q' to quit): ");
             String ans = scanner.nextLine().trim().toLowerCase();
+            if (ans.equals("q") || ans.equals("'q'")) {
+                System.out.println("\nStudy session aborted.");
+                break;
+            }
             boolean got = ans.startsWith("y");
             c.recordAttempt(got);
+            attempted++;
             if (got)
                 correct++;
         }
-        System.out.printf("\nSession complete: %d/%d correct (%.1f%%)\n", correct, session.size(),
-                100.0 * correct / session.size());
+        if (attempted > 0) {
+            System.out.printf("\nSession complete: %d/%d correct (%.1f%%)\n", correct, attempted,
+                    100.0 * correct / attempted);
+        } else {
+            System.out.println("\nSession ended before any cards were attempted.");
+        }
     }
 }
