@@ -6,3 +6,7 @@
 **Vulnerability:** Data storage directory for flashcards lacked explicit permission constraints, risking unauthorized read/write access to user data.
 **Learning:** Default directory creation (Files.createDirectories) uses umask, which can be overly permissive.
 **Prevention:** Always explicitly set restrictive permissions (e.g. owner-only readable/writable/executable) on directories containing sensitive user data via `File#setReadable(false, false)` followed by `File#setReadable(true, true)` (and similarly for writable and executable).
+## 2024-05-24 - [Path Traversal in DeckStore]
+**Vulnerability:** The filename sanitization whitelist `[^a-zA-Z0-9\-_ .]` explicitly permitted dots (.), enabling potential path traversal attacks (e.g., creating a deck named `../../etc/passwd` to overwrite sensitive files).
+**Learning:** Whitelists for filenames must be extremely strict. Even seemingly benign characters like dots can be combined into dangerous sequences (`..`) that alter file paths and break out of designated storage directories.
+**Prevention:** Explicitly exclude dots from filename sanitization whitelists. Ensure sanitization patterns like `[^a-zA-Z0-9\-_ ]` replace dots with underscores or another safe character to neutralize `..` sequences.
