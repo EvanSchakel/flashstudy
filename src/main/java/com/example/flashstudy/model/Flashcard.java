@@ -11,8 +11,11 @@ public class Flashcard {
     }
 
     public Flashcard(String question, String answer) {
-        if (question == null || answer == null)
+        if (question == null || question.isBlank() || answer == null || answer.isBlank())
             throw new IllegalArgumentException("question and answer required");
+        // 🛡️ Sentinel: Add input validation on user data to prevent excessively long inputs (DoS mitigation)
+        if (question.length() > 2000 || answer.length() > 2000)
+            throw new IllegalArgumentException("question or answer exceeds maximum length of 2000 characters");
         this.question = question;
         this.answer = answer;
         this.correctCount = 0;
