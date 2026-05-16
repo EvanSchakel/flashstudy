@@ -14,4 +14,11 @@ public class DeckTest {
         d.removeCard(0);
         assertEquals(0, d.size());
     }
+
+    @Test
+    public void constructorThrowsOnTooLongName() {
+        String longName = "a".repeat(256);
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> new Deck(longName));
+        assertEquals("deck name too long", e.getMessage());
+    }
 }

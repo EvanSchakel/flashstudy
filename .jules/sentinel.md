@@ -6,3 +6,7 @@
 **Vulnerability:** Data storage directory for flashcards lacked explicit permission constraints, risking unauthorized read/write access to user data.
 **Learning:** Default directory creation (Files.createDirectories) uses umask, which can be overly permissive.
 **Prevention:** Always explicitly set restrictive permissions (e.g. owner-only readable/writable/executable) on directories containing sensitive user data via `File#setReadable(false, false)` followed by `File#setReadable(true, true)` (and similarly for writable and executable).
+## 2026-05-16 - Missing Input Length Constraints
+**Vulnerability:** The application lacked input length constraints for deck names, flashcard questions, and answers.
+**Learning:** Unconstrained input length can lead to resource exhaustion (DoS) or OutOfMemory errors when storing or transmitting excessive data.
+**Prevention:** Always implement explicit maximum length validation (e.g., 255 characters) for user-provided strings at application boundaries or within model constructors.

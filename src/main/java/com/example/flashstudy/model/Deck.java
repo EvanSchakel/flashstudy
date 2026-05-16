@@ -14,6 +14,8 @@ public class Deck {
     public Deck(String name) {
         if (name == null || name.isBlank())
             throw new IllegalArgumentException("deck name required");
+        if (name.length() > 255)
+            throw new IllegalArgumentException("deck name too long");
         this.name = name.trim();
     }
 

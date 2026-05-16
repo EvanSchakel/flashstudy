@@ -13,6 +13,8 @@ public class Flashcard {
     public Flashcard(String question, String answer) {
         if (question == null || answer == null)
             throw new IllegalArgumentException("question and answer required");
+        if (question.length() > 255 || answer.length() > 255)
+            throw new IllegalArgumentException("question or answer too long");
         this.question = question;
         this.answer = answer;
         this.correctCount = 0;
