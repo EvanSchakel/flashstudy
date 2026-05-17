@@ -6,3 +6,7 @@
 **Vulnerability:** Data storage directory for flashcards lacked explicit permission constraints, risking unauthorized read/write access to user data.
 **Learning:** Default directory creation (Files.createDirectories) uses umask, which can be overly permissive.
 **Prevention:** Always explicitly set restrictive permissions (e.g. owner-only readable/writable/executable) on directories containing sensitive user data via `File#setReadable(false, false)` followed by `File#setReadable(true, true)` (and similarly for writable and executable).
+## 2026-05-17 - [Prevent Resource Exhaustion]
+**Vulnerability:** Unbounded string lengths on models (e.g. Deck name, Flashcard question/answer) could allow resource exhaustion (DoS).
+**Learning:** Deserializing or handling excessively large payloads via constructors lacking constraints will consume memory unnecessarily.
+**Prevention:** Validate input sizes strictly at object creation. Always use explicit max length validations for strings mapped to entities.

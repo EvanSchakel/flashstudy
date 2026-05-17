@@ -14,6 +14,9 @@ public class Deck {
     public Deck(String name) {
         if (name == null || name.isBlank())
             throw new IllegalArgumentException("deck name required");
+        // 🛡️ Sentinel: Enforce max length validation to prevent resource exhaustion (DoS) via excessively long strings.
+        if (name.length() > 255)
+            throw new IllegalArgumentException("deck name must be less than 255 characters");
         this.name = name.trim();
     }
 

@@ -13,6 +13,9 @@ public class Flashcard {
     public Flashcard(String question, String answer) {
         if (question == null || answer == null)
             throw new IllegalArgumentException("question and answer required");
+        // 🛡️ Sentinel: Enforce max length validation to prevent resource exhaustion (DoS) via excessively long strings.
+        if (question.length() > 255 || answer.length() > 255)
+            throw new IllegalArgumentException("question and answer must be less than 255 characters");
         this.question = question;
         this.answer = answer;
         this.correctCount = 0;
