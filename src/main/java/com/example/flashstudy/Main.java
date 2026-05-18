@@ -59,8 +59,12 @@ public class Main {
                     default:
                         System.out.println("Unknown option");
                 }
+            } catch (java.io.IOException e) {
+                // 🛡️ Sentinel: Catch IOException explicitly to prevent file path leakage (Information Leakage)
+                System.out.println("A storage error occurred. Please check file permissions.");
             } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
+                // 🛡️ Sentinel: Catch other exceptions with a generic message to prevent information leakage
+                System.out.println("An unexpected error occurred.");
             }
         }
     }

@@ -6,3 +6,7 @@
 **Vulnerability:** Data storage directory for flashcards lacked explicit permission constraints, risking unauthorized read/write access to user data.
 **Learning:** Default directory creation (Files.createDirectories) uses umask, which can be overly permissive.
 **Prevention:** Always explicitly set restrictive permissions (e.g. owner-only readable/writable/executable) on directories containing sensitive user data via `File#setReadable(false, false)` followed by `File#setReadable(true, true)` (and similarly for writable and executable).
+## 2026-05-18 - File Path Leakage in CLI Error Messages
+**Vulnerability:** The application's main loop caught `Exception` and printed `e.getMessage()`. For file I/O operations (like `java.nio.file.NoSuchFileException` or `java.nio.file.AccessDeniedException`), `getMessage()` returns the absolute file path. This leaks internal directory structures and the user's home directory path/username to the terminal output.
+**Learning:** Even simple CLI applications can suffer from Information Leakage if exception messages are printed verbatim. Standard library exceptions often include sensitive contextual data in their error messages.
+**Prevention:** Avoid printing `e.getMessage()` directly for exceptions that interact with the local filesystem or other external systems. Instead, catch specific exceptions (like `IOException`) and print a safe, generic user-facing message, failing securely.
