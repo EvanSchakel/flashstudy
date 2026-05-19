@@ -6,3 +6,7 @@
 **Vulnerability:** Data storage directory for flashcards lacked explicit permission constraints, risking unauthorized read/write access to user data.
 **Learning:** Default directory creation (Files.createDirectories) uses umask, which can be overly permissive.
 **Prevention:** Always explicitly set restrictive permissions (e.g. owner-only readable/writable/executable) on directories containing sensitive user data via `File#setReadable(false, false)` followed by `File#setReadable(true, true)` (and similarly for writable and executable).
+## 2026-05-19 - Information Leakage via Exception Messages
+**Vulnerability:** Raw exception messages from file system operations (e.g. `e.getMessage()`) were printed directly to the terminal output.
+**Learning:** Standard library exceptions, particularly `IOException`, can leak internal directory structures, absolute paths, and usernames. In a CLI context, this exposes internal host environment information to end-users or attackers.
+**Prevention:** Avoid passing raw exception messages to the user interface. Provide generic, safe error messages to users while printing detailed diagnostics to the error stream (stderr) or a log file for observability.

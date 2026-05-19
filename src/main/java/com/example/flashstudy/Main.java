@@ -8,10 +8,22 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Scanner;
+import java.io.PrintWriter;
+import java.io.FileWriter;
 
 public class Main {
     private static DeckStore store;
     private static Scanner scanner;
+
+    private static void logError(Throwable t) {
+        try {
+            Path logFile = Paths.get(System.getProperty("user.home"), ".flashstudy", "error.log");
+            try (PrintWriter pw = new PrintWriter(new FileWriter(logFile.toFile(), true))) {
+                t.printStackTrace(pw);
+            }
+        } catch (Exception ignore) {
+        }
+    }
 
     public static void main(String[] args) {
         try {
@@ -20,7 +32,8 @@ public class Main {
             scanner = new Scanner(System.in);
             loop();
         } catch (Throwable t) {
-            System.err.println("A fatal application error occurred. Exiting securely.");
+            logError(t);
+            System.err.println("A fatal application error occurred. Exiting securely. See error.log for details.");
             System.exit(1);
         }
     }
@@ -60,7 +73,8 @@ public class Main {
                         System.out.println("Unknown option");
                 }
             } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
+                logError(e);
+                System.out.println("An error occurred during the operation. See error.log for details.");
             }
         }
     }
