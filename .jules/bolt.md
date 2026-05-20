@@ -5,3 +5,7 @@
 ## 2026-05-05 - Pre-compile Regex Patterns
 **Learning:** Using `String.replaceAll` internally compiles a new regex `Pattern` on every invocation. For string sanitization functions that are repeatedly called during bulk operations (like generating filenames for 1000s of decks), this creates unnecessary CPU overhead.
 **Action:** Always pre-compile regular expressions into static `Pattern` constants for functions that are called frequently or in loops, resulting in nearly 50% faster execution.
+
+## 2026-05-20 - JSON Serialization Optimization
+**Learning:** Using `new GsonBuilder().setPrettyPrinting().create()` introduces unnecessary overhead in serialization time and file size for internal JSON data storage where human readability is not required.
+**Action:** Prefer standard `new Gson()` for internal data to optimize serialization speed and reduce storage footprint.
