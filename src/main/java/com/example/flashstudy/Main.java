@@ -4,6 +4,8 @@ import com.example.flashstudy.model.Deck;
 import com.example.flashstudy.model.Flashcard;
 import com.example.flashstudy.persistence.DeckStore;
 import com.example.flashstudy.service.StudySession;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -20,8 +22,22 @@ public class Main {
             scanner = new Scanner(System.in);
             loop();
         } catch (Throwable t) {
+            logError(t);
             System.err.println("A fatal application error occurred. Exiting securely.");
             System.exit(1);
+        }
+    }
+
+    private static void logError(Throwable t) {
+        try {
+            Path logFile = Paths.get(System.getProperty("user.home"), ".flashstudy", "error.log");
+            try (PrintWriter pw = new PrintWriter(new FileWriter(logFile.toFile(), true))) {
+                pw.println("Exception: " + t.toString());
+                t.printStackTrace(pw);
+                pw.println();
+            }
+        } catch (Exception ignore) {
+            // Silently ignore logging failures to prevent infinite loops or exposing failure
         }
     }
 
@@ -60,7 +76,8 @@ public class Main {
                         System.out.println("Unknown option");
                 }
             } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
+                logError(e);
+                System.out.println("An error occurred during the operation.");
             }
         }
     }

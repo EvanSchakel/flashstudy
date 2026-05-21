@@ -6,3 +6,7 @@
 **Vulnerability:** Data storage directory for flashcards lacked explicit permission constraints, risking unauthorized read/write access to user data.
 **Learning:** Default directory creation (Files.createDirectories) uses umask, which can be overly permissive.
 **Prevention:** Always explicitly set restrictive permissions (e.g. owner-only readable/writable/executable) on directories containing sensitive user data via `File#setReadable(false, false)` followed by `File#setReadable(true, true)` (and similarly for writable and executable).
+## 2024-05-21 - Information Leakage via Exception Messages
+**Vulnerability:** The application was printing `e.getMessage()` directly to the terminal in the main application loop, risking exposure of absolute paths and internal details.
+**Learning:** Raw exception messages can be just as dangerous as stack traces, revealing sensitive environmental and operational data to the end user.
+**Prevention:** Catch exceptions securely by logging the full stack trace to a local file (e.g., `~/.flashstudy/error.log`) while providing only a safe, generic error message (e.g., "An error occurred during the operation.") to standard output.
