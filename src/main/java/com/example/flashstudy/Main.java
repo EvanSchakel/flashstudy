@@ -4,8 +4,12 @@ import com.example.flashstudy.model.Deck;
 import com.example.flashstudy.model.Flashcard;
 import com.example.flashstudy.persistence.DeckStore;
 import com.example.flashstudy.service.StudySession;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Scanner;
 
@@ -20,8 +24,24 @@ public class Main {
             scanner = new Scanner(System.in);
             loop();
         } catch (Throwable t) {
+            logError(t);
             System.err.println("A fatal application error occurred. Exiting securely.");
             System.exit(1);
+        }
+    }
+
+    private static void logError(Throwable t) {
+        try {
+            Path errorLogPath = Paths.get(System.getProperty("user.home"), ".flashstudy", "error.log");
+            Files.createDirectories(errorLogPath.getParent());
+            try (FileWriter fw = new FileWriter(errorLogPath.toFile(), true);
+                 PrintWriter pw = new PrintWriter(fw)) {
+                pw.println("--- Error Logged at " + LocalDateTime.now() + " ---");
+                t.printStackTrace(pw);
+                pw.println();
+            }
+        } catch (Exception ignored) {
+            // Silently ignore logging exceptions to prevent cascading failures
         }
     }
 
@@ -59,8 +79,11 @@ public class Main {
                     default:
                         System.out.println("Unknown option");
                 }
-            } catch (Exception e) {
+            } catch (IllegalArgumentException e) {
                 System.out.println("Error: " + e.getMessage());
+            } catch (Exception e) {
+                logError(e);
+                System.out.println("An unexpected error occurred. Please try again.");
             }
         }
     }
