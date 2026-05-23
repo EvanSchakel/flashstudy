@@ -6,3 +6,7 @@
 **Vulnerability:** Data storage directory for flashcards lacked explicit permission constraints, risking unauthorized read/write access to user data.
 **Learning:** Default directory creation (Files.createDirectories) uses umask, which can be overly permissive.
 **Prevention:** Always explicitly set restrictive permissions (e.g. owner-only readable/writable/executable) on directories containing sensitive user data via `File#setReadable(false, false)` followed by `File#setReadable(true, true)` (and similarly for writable and executable).
+## 2026-05-23 - Prevent Local DoS via Malformed Data Files
+**Vulnerability:** The application failed to catch `RuntimeException`s (like `JsonSyntaxException`) when parsing locally stored JSON data in a parallel stream. A single corrupted or maliciously crafted local JSON file would crash the entire data loading process, resulting in a Denial of Service.
+**Learning:** File parsers (like Gson) often throw unchecked exceptions on malformed input. When iterating over multiple files, an unhandled unchecked exception from one file will terminate the entire operation for all files.
+**Prevention:** Always wrap parsing operations of user-controlled or external data in a robust `try-catch` block that explicitly handles or broadens to catch parsing-specific `RuntimeException`s, especially within loops or streams, ensuring that one bad file does not impact the availability of the rest of the application.
