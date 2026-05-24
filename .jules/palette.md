@@ -5,3 +5,7 @@
 ## 2024-05-22 - Add Escape Hatches for Interactive Prompts
 **Learning:** Long-running loops in CLI interactive prompts (like study sessions) can trap users if they want to exit early, leading to unnatural exits (like closing the terminal or forcing an interrupt). Providing an explicit escape hatch avoids trapping the user.
 **Action:** Always provide and clearly document an explicit escape hatch (e.g., pressing 'q' to quit) for CLI interactive prompts and loops.
+
+## 2024-05-23 - Improve CLI input prompts by adding cancellation
+**Learning:** For interactive CLI prompts, users often hit 'Enter' by mistake or want to back out of a selection, leading to confusing `Invalid input` or `NumberFormatException` errors. Explicitly documenting and handling an empty input or 'q' as a cancellation creates a safer and more intuitive user experience.
+**Action:** When designing CLI inputs that expect parsing (like integers), explicitly handle `s.isEmpty()` and provide a descriptive cancellation message (e.g., "Canceled.") instead of throwing errors. Include "(or 'q' to cancel)" in the prompt text.

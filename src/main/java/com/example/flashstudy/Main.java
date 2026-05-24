@@ -109,8 +109,12 @@ public class Main {
         }
         for (int i = 0; i < decks.size(); i++)
             System.out.printf("%d) %s (%d cards)\n", i + 1, decks.get(i).getName(), decks.get(i).size());
-        System.out.print("Choose deck number: ");
+        System.out.print("Choose deck number (or 'q' to cancel): ");
         String s = scanner.nextLine().trim();
+        if (s.isEmpty() || s.equalsIgnoreCase("q")) {
+            System.out.println("Canceled.");
+            return null;
+        }
         try {
             int idx = Integer.parseInt(s) - 1;
             if (idx < 0 || idx >= decks.size()) {
