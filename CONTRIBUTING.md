@@ -1,44 +1,26 @@
 # Contributing to FlashStudy
 
-First off, thank you for considering contributing to FlashStudy! It's people like you that make FlashStudy a better tool for everyone.
+FlashStudy is a solo personal project, but issues and pull requests are welcome.
 
-## Where do I go from here?
+## Found a bug?
 
-If you've noticed a bug or have a feature request, please make one! We have templates for issues to help you get started.
+Open an issue with a description of what you expected vs. what happened, your Java version, and the steps to reproduce it.
 
-## Fork & create a branch
+## Want to suggest a feature?
 
-If this is something you think you can fix, then fork FlashStudy and create a branch with a descriptive name.
+Open an issue describing the feature and why it would be useful. Keep in mind the project is intentionally small and CLI-focused.
 
-## Get the test suite running
+## Submitting a pull request
 
-Make sure you have Java 11+ and Maven installed.
-Run `mvn test` to ensure everything is working before you start making changes.
+1. Fork the repo and create a branch from `main`.
+2. Make sure you have JDK 17+ and Maven 3.8+ installed.
+3. Run the test suite before and after your changes:
+   ```bash
+   mvn test
+   ```
+4. Keep changes focused — one fix or feature per PR.
+5. Open the pull request against `main`.
 
-## Implement your fix or feature
+## Adding example decks
 
-At this point, you're ready to make your changes! Feel free to ask for help; everyone is a beginner at first :smile_cat:
-
-## Make a Pull Request
-
-At this point, you should switch back to your master branch and make sure it's up to date with FlashStudy's master branch:
-
-```sh
-git remote add upstream https://github.com/EvanSchakel/flashstudy.git
-git checkout master
-git pull upstream master
-```
-
-Then update your feature branch from your local copy of master, and push it!
-
-```sh
-git checkout 325-add-new-feature
-git rebase master
-git push --set-upstream origin 325-add-new-feature
-```
-
-Finally, go to GitHub and make a Pull Request! We have a template for this to help you describe your changes.
-
-## Adding new Decks
-
-If you have a great deck of flashcards you'd like to share with the community, you can add it to the `examples/` directory! Just make sure it's in the correct JSON format.
+If you have a useful set of flashcards, you can add it to `examples/` as a JSON file in the existing format.
