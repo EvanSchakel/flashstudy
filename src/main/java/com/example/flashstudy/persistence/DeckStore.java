@@ -53,6 +53,9 @@ public class DeckStore {
             return null;
         try (Reader r = Files.newBufferedReader(file)) {
             return gson.fromJson(r, Deck.class);
+        } catch (Exception e) {
+            // 🛡️ Sentinel: Catch JSON parsing exceptions to prevent DoS from malformed local files
+            return null;
         }
     }
 
@@ -65,7 +68,8 @@ public class DeckStore {
                          .map(p -> {
                              try (Reader r = Files.newBufferedReader(p)) {
                                  return gson.fromJson(r, Deck.class);
-                             } catch (IOException e) {
+                             } catch (Exception e) {
+                                 // 🛡️ Sentinel: Catch all exceptions including JsonSyntaxException to prevent stream crash
                                  return null;
                              }
                          })
