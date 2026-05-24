@@ -65,7 +65,9 @@ public class DeckStore {
                          .map(p -> {
                              try (Reader r = Files.newBufferedReader(p)) {
                                  return gson.fromJson(r, Deck.class);
-                             } catch (IOException e) {
+                             } catch (Exception e) {
+                                 // 🛡️ Sentinel: Catch generic Exception (including JsonSyntaxException)
+                                 // to prevent a single malformed file from causing a local DoS by terminating the batch load.
                                  return null;
                              }
                          })

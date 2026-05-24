@@ -6,3 +6,7 @@
 **Vulnerability:** Data storage directory for flashcards lacked explicit permission constraints, risking unauthorized read/write access to user data.
 **Learning:** Default directory creation (Files.createDirectories) uses umask, which can be overly permissive.
 **Prevention:** Always explicitly set restrictive permissions (e.g. owner-only readable/writable/executable) on directories containing sensitive user data via `File#setReadable(false, false)` followed by `File#setReadable(true, true)` (and similarly for writable and executable).
+## 2024-05-24 - [Fix Local DoS when parsing multiple user files]
+**Vulnerability:** Parsing multiple JSON files via a stream without catching `RuntimeException`s (like `JsonSyntaxException` from Gson) allows a single malformed file to terminate the entire batch load, causing a local Denial of Service (DoS).
+**Learning:** When reading from user-controlled directories, do not assume file content validity. An unhandled syntax exception breaks the application flow for all other valid files.
+**Prevention:** When parsing multiple files in a loop or stream, explicitly catch parsing-specific `RuntimeException`s (or a general `Exception`) around the read operation to ensure fault tolerance.
