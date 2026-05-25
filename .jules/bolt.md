@@ -9,3 +9,7 @@
 ## 2026-05-22 - Gson Pretty Printing Overhead
 **Learning:** Using `new GsonBuilder().setPrettyPrinting().create()` for internal storage serialization adds significant CPU overhead and file size bloat (about 40% slower and 33% larger output) compared to standard `new Gson()`.
 **Action:** Always prefer standard `new Gson()` for internal data persistence where human-readability is not a strict requirement, prioritizing speed and storage efficiency.
+
+## 2026-05-25 - Avoid Redundant Files.exists() Checks
+**Learning:** Checking `Files.exists()` immediately before opening a file with `Files.newBufferedReader()` is redundant, causes an unnecessary extra file system call (increasing disk I/O), and introduces a Time-of-Check to Time-of-Use (TOCTOU) race condition.
+**Action:** Simply attempt to open the file and handle the `NoSuchFileException` to eliminate the extra disk access and ensure thread safety.
