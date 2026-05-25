@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Deck {
+    private static final int MAX_NAME_LENGTH = 255;
+
     private String name;
     private List<Flashcard> cards = new ArrayList<>();
 
@@ -14,6 +16,8 @@ public class Deck {
     public Deck(String name) {
         if (name == null || name.isBlank())
             throw new IllegalArgumentException("deck name required");
+        if (name.length() > MAX_NAME_LENGTH)
+            throw new IllegalArgumentException("deck name is too long");
         this.name = name.trim();
     }
 

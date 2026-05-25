@@ -14,4 +14,11 @@ public class FlashcardTest {
         assertEquals(1, f.getCorrectCount());
         assertEquals(0.5, f.getAccuracy(), 1e-6);
     }
+
+    @Test
+    public void rejectsTooLongQuestionOrAnswer() {
+        String tooLong = "x".repeat(256);
+        assertThrows(IllegalArgumentException.class, () -> new Flashcard(tooLong, "A"));
+        assertThrows(IllegalArgumentException.class, () -> new Flashcard("Q", tooLong));
+    }
 }

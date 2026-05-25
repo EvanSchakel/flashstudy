@@ -1,6 +1,8 @@
 package com.example.flashstudy.model;
 
 public class Flashcard {
+    private static final int MAX_TEXT_LENGTH = 255;
+
     private String question;
     private String answer;
     private int correctCount;
@@ -13,6 +15,8 @@ public class Flashcard {
     public Flashcard(String question, String answer) {
         if (question == null || answer == null)
             throw new IllegalArgumentException("question and answer required");
+        if (question.length() > MAX_TEXT_LENGTH || answer.length() > MAX_TEXT_LENGTH)
+            throw new IllegalArgumentException("question and answer are too long");
         this.question = question;
         this.answer = answer;
         this.correctCount = 0;

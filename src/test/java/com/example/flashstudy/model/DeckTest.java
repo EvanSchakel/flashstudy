@@ -14,4 +14,9 @@ public class DeckTest {
         d.removeCard(0);
         assertEquals(0, d.size());
     }
+
+    @Test
+    public void rejectsTooLongDeckName() {
+        assertThrows(IllegalArgumentException.class, () -> new Deck("x".repeat(256)));
+    }
 }
