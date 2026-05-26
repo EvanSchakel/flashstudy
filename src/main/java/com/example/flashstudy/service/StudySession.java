@@ -34,9 +34,19 @@ public class StudySession {
             }
             attempted++;
             System.out.println("Answer:\n" + c.getAnswer());
-            System.out.print("Did you get it right? (y/n): ");
-            String ans = scanner.nextLine().trim().toLowerCase();
-            boolean got = ans.startsWith("y");
+            boolean got;
+            while (true) {
+                System.out.print("Did you get it right? (y/n): ");
+                String ans = scanner.nextLine().trim().toLowerCase();
+                if (ans.equals("y") || ans.equals("yes")) {
+                    got = true;
+                    break;
+                } else if (ans.equals("n") || ans.equals("no")) {
+                    got = false;
+                    break;
+                }
+                System.out.println("Invalid input. Please enter 'y' or 'n'.");
+            }
             c.recordAttempt(got);
             if (got)
                 correct++;
