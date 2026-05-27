@@ -9,3 +9,7 @@
 ## 2026-05-22 - Gson Pretty Printing Overhead
 **Learning:** Using `new GsonBuilder().setPrettyPrinting().create()` for internal storage serialization adds significant CPU overhead and file size bloat (about 40% slower and 33% larger output) compared to standard `new Gson()`.
 **Action:** Always prefer standard `new Gson()` for internal data persistence where human-readability is not a strict requirement, prioritizing speed and storage efficiency.
+
+## 2026-05-27 - Immutable Collection Caching
+**Learning:** Returning a direct reference to a cached, mutable internal data structure (like an `ArrayList` representing loaded database entities) is an anti-pattern. If a consumer mutates the list, the internal cache becomes permanently corrupted until restarted or invalidated.
+**Action:** When implementing in-memory caches that return Collections, always wrap the cached result in `Collections.unmodifiableList(cache)` or return a defensive copy to prevent callers from inadvertently modifying internal state.
