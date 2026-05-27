@@ -34,7 +34,16 @@ public class Main {
         try {
             Path errorLogPath = Paths.get(System.getProperty("user.home"), ".flashstudy", "error.log");
             Files.createDirectories(errorLogPath.getParent());
-            try (FileWriter fw = new FileWriter(errorLogPath.toFile(), true);
+            java.io.File logFile = errorLogPath.toFile();
+            if (logFile.createNewFile()) {
+                // 🛡️ Sentinel: Enforce strict file permissions for error log to prevent information leakage
+                logFile.setReadable(false, false);
+                logFile.setWritable(false, false);
+                logFile.setExecutable(false, false);
+                logFile.setReadable(true, true);
+                logFile.setWritable(true, true);
+            }
+            try (FileWriter fw = new FileWriter(logFile, true);
                  PrintWriter pw = new PrintWriter(fw)) {
                 pw.println("--- Error Logged at " + LocalDateTime.now() + " ---");
                 t.printStackTrace(pw);

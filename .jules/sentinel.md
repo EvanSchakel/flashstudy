@@ -14,3 +14,7 @@
 **Vulnerability:** The application used `Files.exists()` to check if a deck file exists before trying to open it. This introduces a Time-of-Check to Time-of-Use (TOCTOU) race condition, where the file could be deleted or modified between the check and the actual read operation.
 **Learning:** File system checks before usage are often redundant and can lead to race conditions. It is more secure and efficient to attempt the operation directly and handle the resulting exception if it fails.
 **Prevention:** Avoid `Files.exists()` checks before opening a file. Instead, attempt to open the file directly and catch `NoSuchFileException` or other relevant IO exceptions.
+## 2026-05-27 - Enforce secure file permissions on log files
+**Vulnerability:** Error log file (`error.log`) containing sensitive application data (stack traces) was created with default, overly permissive file permissions.
+**Learning:** Even files not explicitly considered "user data" (like error logs) can leak sensitive internal state and must have their permissions restricted upon creation.
+**Prevention:** Always explicitly set restrictive permissions (e.g. owner-only readable/writable) on log files containing sensitive data via `File#setReadable(false, false)` followed by `File#setReadable(true, true)` upon file creation.
