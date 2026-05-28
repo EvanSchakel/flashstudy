@@ -65,6 +65,9 @@ public class Main {
             }
 
             String choice = scanner.nextLine().trim();
+            if (choice.isEmpty()) {
+                continue;
+            }
             try {
                 switch (choice) {
                     case "1":
@@ -120,7 +123,7 @@ public class Main {
             System.out.printf("%d) %s (%d cards)\n", i + 1, decks.get(i).getName(), decks.get(i).size());
         System.out.print("Choose deck number (or 'q' to cancel): ");
         String s = scanner.nextLine().trim();
-        if (s.equalsIgnoreCase("q")) {
+        if (s.isEmpty() || s.equalsIgnoreCase("q")) {
             System.out.println("Canceled.");
             return null;
         }
@@ -140,12 +143,8 @@ public class Main {
     private static void createDeck() throws Exception {
         System.out.print("Enter deck name (or 'q' to cancel): ");
         String name = scanner.nextLine().trim();
-        if (name.equalsIgnoreCase("q")) {
+        if (name.isEmpty() || name.equalsIgnoreCase("q")) {
             System.out.println("Canceled.");
-            return;
-        }
-        if (name.isEmpty()) {
-            System.out.println("Name required");
             return;
         }
         Deck deck = new Deck(name);
@@ -159,13 +158,13 @@ public class Main {
             return;
         System.out.print("Question (or 'q' to cancel): ");
         String q = scanner.nextLine().trim();
-        if (q.equalsIgnoreCase("q")) {
+        if (q.isEmpty() || q.equalsIgnoreCase("q")) {
             System.out.println("Canceled.");
             return;
         }
         System.out.print("Answer (or 'q' to cancel): ");
         String a = scanner.nextLine().trim();
-        if (a.equalsIgnoreCase("q")) {
+        if (a.isEmpty() || a.equalsIgnoreCase("q")) {
             System.out.println("Canceled.");
             return;
         }
