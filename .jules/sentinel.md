@@ -18,3 +18,7 @@
 **Vulnerability:** Error log file (`error.log`) containing sensitive application data (stack traces) was created with default, overly permissive file permissions.
 **Learning:** Even files not explicitly considered "user data" (like error logs) can leak sensitive internal state and must have their permissions restricted upon creation.
 **Prevention:** Always explicitly set restrictive permissions (e.g. owner-only readable/writable) on log files containing sensitive data via `File#setReadable(false, false)` followed by `File#setReadable(true, true)` upon file creation.
+## 2026-05-28 - Enforce secure file permissions on local data files
+**Vulnerability:** Newly created user deck files (`.json`) were being created with default OS permissions, potentially allowing other users on the same system to read or modify sensitive flashcard data.
+**Learning:** `Files.newBufferedWriter(file)` relies on the system umask and does not restrict file access. User data files stored locally should always default to restrictive permissions to minimize the risk of local data exposure.
+**Prevention:** Explicitly set strict, owner-only file permissions using `java.io.File` methods (`f.setReadable(false, false)`, etc.) conditionally wrapped inside `f.createNewFile()` prior to writing sensitive user data.

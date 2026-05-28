@@ -48,6 +48,15 @@ public class DeckStore {
     public void saveDeck(Deck deck) throws IOException {
         Path file = dir.resolve(sanitize(deck.getName()) + ".json");
         deckCache = null;
+        java.io.File f = file.toFile();
+        if (f.createNewFile()) {
+            // 🛡️ Sentinel: Enforce strict file permissions for deck files to protect user data
+            f.setReadable(false, false);
+            f.setWritable(false, false);
+            f.setExecutable(false, false);
+            f.setReadable(true, true);
+            f.setWritable(true, true);
+        }
         try (Writer w = Files.newBufferedWriter(file)) {
             gson.toJson(deck, w);
         }
