@@ -47,7 +47,6 @@ public class DeckStore {
 
     public void saveDeck(Deck deck) throws IOException {
         Path file = dir.resolve(sanitize(deck.getName()) + ".json");
-        deckCache = null;
         java.io.File f = file.toFile();
         if (f.createNewFile()) {
             // 🛡️ Sentinel: Enforce strict file permissions for deck files to protect user data
@@ -59,6 +58,13 @@ public class DeckStore {
         }
         try (Writer w = Files.newBufferedWriter(file)) {
             gson.toJson(deck, w);
+        }
+        // ⚡ Bolt Optimization: Incrementally update the in-memory cache instead of invalidating it entirely.
+        // Impact: Eliminates expensive disk I/O and re-parsing of all unchanged decks on subsequent loadAll() calls.
+        if (deckCache != null) {
+            final String targetName = deck.getName();
+            deckCache.removeIf(d -> d.getName().equals(targetName));
+            deckCache.add(deck);
         }
     }
 
@@ -98,8 +104,11 @@ public class DeckStore {
     }
 
     public boolean deleteDeck(String name) throws IOException {
-        deckCache = null;
-        return Files.deleteIfExists(dir.resolve(sanitize(name) + ".json"));
+        boolean deleted = Files.deleteIfExists(dir.resolve(sanitize(name) + ".json"));
+        if (deleted && deckCache != null) {
+            deckCache.removeIf(d -> d.getName().equals(name));
+        }
+        return deleted;
     }
 
     private String sanitize(String name) {
