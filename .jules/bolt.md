@@ -13,3 +13,11 @@
 ## 2026-05-27 - Immutable Collection Caching
 **Learning:** Returning a direct reference to a cached, mutable internal data structure (like an `ArrayList` representing loaded database entities) is an anti-pattern. If a consumer mutates the list, the internal cache becomes permanently corrupted until restarted or invalidated.
 **Action:** When implementing in-memory caches that return Collections, always wrap the cached result in `Collections.unmodifiableList(cache)` or return a defensive copy to prevent callers from inadvertently modifying internal state.
+
+## 2026-05-27 - Incremental Cache Updates vs. Invalidation
+**Learning:** Fully invalidating an in-memory cache on every write operation (e.g., `deckCache = null` on `saveDeck`) causes extreme performance degradation for subsequent reads (e.g., `loadAll()`), particularly when dealing with many files. Reparsing all 10k files when only 1 file changed took over 1200ms compared to under 100ms with incremental updates.
+**Action:** When managing an in-memory cache representing distinct disk entities, prefer incrementally updating the cache (adding/removing the specific modified entity) over full cache invalidation to eliminate redundant disk I/O and deserialization overhead.
+
+## 2026-05-28 - In-Memory Caching and Data Encapsulation
+**Learning:** Returning objects directly from an internal cache can lead to issues if those objects are mutable. Additionally, intercepting `loadDeck` to return directly from the cache bypassed the `NoSuchFileException` that the method contract guarantees if a deck is not found, altering the expected behavior of the system and potentially causing `NullPointerException` in calling code.
+**Action:** When working with caching, ensure that fetching from the cache maintains the original method's semantics (e.g., throwing expected exceptions). Also, do not cache mutable objects and then serve references to them. It is generally safer to let operations like `loadDeck` (which fetches a specific entity) continue hitting the disk unless specifically designed to return immutable copies or defensive copies from the cache.
