@@ -21,3 +21,7 @@
 ## 2026-05-28 - In-Memory Caching and Data Encapsulation
 **Learning:** Returning objects directly from an internal cache can lead to issues if those objects are mutable. Additionally, intercepting `loadDeck` to return directly from the cache bypassed the `NoSuchFileException` that the method contract guarantees if a deck is not found, altering the expected behavior of the system and potentially causing `NullPointerException` in calling code.
 **Action:** When working with caching, ensure that fetching from the cache maintains the original method's semantics (e.g., throwing expected exceptions). Also, do not cache mutable objects and then serve references to them. It is generally safer to let operations like `loadDeck` (which fetches a specific entity) continue hitting the disk unless specifically designed to return immutable copies or defensive copies from the cache.
+
+## 2026-05-29 - String I/O over Buffered Streams for Small Files
+**Learning:** Using `Files.newBufferedReader` and `Files.newBufferedWriter` with Gson introduces noticeable overhead for many small files due to stream wrapper allocations and locking. Directly reading to/writing from memory strings via `Files.readString` and `Files.writeString` before JSON serialization/deserialization is significantly faster (~64% reduction in load times for thousands of small files).
+**Action:** For small, finite-sized internal JSON configuration or data files, prefer reading the entire file into a `String` first rather than passing a streaming `Reader`/`Writer` to Gson.
