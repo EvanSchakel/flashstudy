@@ -45,14 +45,13 @@ public class Main {
 
             // 🛡️ Sentinel: Enforce strict file permissions for the error log file to prevent info leakage
             java.io.File logFile = errorLogPath.toFile();
-            if (!logFile.exists()) {
-                logFile.createNewFile();
+            if (logFile.createNewFile()) {
+                logFile.setReadable(false, false);
+                logFile.setWritable(false, false);
+                logFile.setExecutable(false, false);
+                logFile.setReadable(true, true);
+                logFile.setWritable(true, true);
             }
-            logFile.setReadable(false, false);
-            logFile.setWritable(false, false);
-            logFile.setExecutable(false, false);
-            logFile.setReadable(true, true);
-            logFile.setWritable(true, true);
 
             try (FileWriter fw = new FileWriter(logFile, true);
                  PrintWriter pw = new PrintWriter(fw)) {
