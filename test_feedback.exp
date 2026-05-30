@@ -1,0 +1,41 @@
+#!/usr/bin/expect -f
+set timeout 5
+spawn java -jar target/flashstudy-0.1.0.jar
+
+expect "Choose:"
+send "2\r"
+
+expect "Enter deck name"
+send "TestDeck1\r"
+
+expect "Deck 'TestDeck1' created."
+
+expect "Choose:"
+send "3\r"
+
+expect "Choose deck number"
+send "1\r"
+
+expect "Question"
+send "Q1\r"
+
+expect "Answer"
+send "A1\r"
+
+expect "Card added to 'TestDeck1'."
+
+expect "Choose:"
+send "5\r"
+
+expect "Choose deck number"
+send "1\r"
+
+expect "Type 'yes' to confirm delete TestDeck1"
+send "yes\r"
+
+expect "Deck 'TestDeck1' deleted."
+
+expect "Choose:"
+send "0\r"
+
+expect eof
