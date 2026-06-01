@@ -190,8 +190,10 @@ public class Main {
         if (deck == null)
             return;
         StudySession s = new StudySession(deck);
-        s.run(scanner);
-        store.saveDeck(deck);
+        int attempted = s.run(scanner);
+        if (attempted > 0) {
+            store.saveDeck(deck);
+        }
     }
 
     private static void deleteDeck() throws Exception {
