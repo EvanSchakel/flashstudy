@@ -190,8 +190,10 @@ public class Main {
         if (deck == null)
             return;
         StudySession s = new StudySession(deck);
-        s.run(scanner);
-        store.saveDeck(deck);
+        // ⚡ Bolt Optimization: Skip disk I/O if the deck wasn't modified
+        if (s.run(scanner)) {
+            store.saveDeck(deck);
+        }
     }
 
     private static void deleteDeck() throws Exception {
