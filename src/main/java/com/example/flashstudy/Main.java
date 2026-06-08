@@ -44,18 +44,21 @@ public class Main {
             dirFile.setExecutable(true, true);
 
             // 🛡️ Sentinel: Enforce strict file permissions for the error log file to prevent info leakage
-            java.io.File logFile = errorLogPath.toFile();
-            if (!logFile.exists()) {
-                logFile.createNewFile();
+            try {
+                java.util.Set<java.nio.file.attribute.PosixFilePermission> perms =
+                    java.nio.file.attribute.PosixFilePermissions.fromString("rw-------");
+                java.nio.file.attribute.FileAttribute<java.util.Set<java.nio.file.attribute.PosixFilePermission>> attr =
+                    java.nio.file.attribute.PosixFilePermissions.asFileAttribute(perms);
+                Files.createFile(errorLogPath, attr);
+            } catch (java.nio.file.FileAlreadyExistsException e) {
+                // Ignore if it already exists
             }
-            logFile.setReadable(false, false);
-            logFile.setWritable(false, false);
-            logFile.setExecutable(false, false);
-            logFile.setReadable(true, true);
-            logFile.setWritable(true, true);
 
-            try (FileWriter fw = new FileWriter(logFile, true);
-                 PrintWriter pw = new PrintWriter(fw)) {
+            try (java.io.OutputStream os = Files.newOutputStream(errorLogPath,
+                     java.nio.file.StandardOpenOption.CREATE,
+                     java.nio.file.StandardOpenOption.APPEND,
+                     java.nio.file.LinkOption.NOFOLLOW_LINKS);
+                 PrintWriter pw = new PrintWriter(os)) {
                 pw.println("--- Error Logged at " + LocalDateTime.now() + " ---");
                 t.printStackTrace(pw);
                 pw.println();
