@@ -22,3 +22,7 @@
 **Vulnerability:** Newly created user deck files (`.json`) were being created with default OS permissions, potentially allowing other users on the same system to read or modify sensitive flashcard data.
 **Learning:** `Files.newBufferedWriter(file)` relies on the system umask and does not restrict file access. User data files stored locally should always default to restrictive permissions to minimize the risk of local data exposure.
 **Prevention:** Explicitly set strict, owner-only file permissions using `java.io.File` methods (`f.setReadable(false, false)`, etc.) conditionally wrapped inside `f.createNewFile()` prior to writing sensitive user data.
+## 2026-06-09 - Ensure pre-existing files are secured when fixing TOCTOU
+**Vulnerability:** When fixing a TOCTOU vulnerability by replacing `File.createNewFile()` and `File.setReadable()` with an atomic `Files.createFile()` approach, the fix might catch `FileAlreadyExistsException` and do nothing. This leaves previously created files (from before the patch) with their original, insecure default permissions.
+**Learning:** Security fixes for file creation must account for backward compatibility and the existing state of the filesystem. If a file already exists, its permissions should be explicitly asserted or corrected to match the intended secure state.
+**Prevention:** When handling a `FileAlreadyExistsException` in a file creation routine intended to enforce secure permissions, explicitly call `Files.setPosixFilePermissions(path, attr.value())` to remediate the permissions of the pre-existing file.
