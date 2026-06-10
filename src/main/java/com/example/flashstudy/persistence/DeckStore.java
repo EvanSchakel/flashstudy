@@ -31,15 +31,16 @@ public class DeckStore {
     public DeckStore(Path dir) {
         this.dir = dir;
         try {
-            Files.createDirectories(dir);
-            // 🛡️ Sentinel: Enforce strict file permissions for the storage directory to protect user data
-            java.io.File dirFile = dir.toFile();
-            dirFile.setReadable(false, false);
-            dirFile.setWritable(false, false);
-            dirFile.setExecutable(false, false);
-            dirFile.setReadable(true, true);
-            dirFile.setWritable(true, true);
-            dirFile.setExecutable(true, true);
+            // 🛡️ Sentinel: Fix TOCTOU by atomically creating directory with secure permissions
+            try {
+                Files.createDirectories(dir, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(
+                    java.nio.file.attribute.PosixFilePermissions.fromString("rwx------")));
+            } catch (UnsupportedOperationException e) {
+                Files.createDirectories(dir);
+            }
+            try {
+                Files.setPosixFilePermissions(dir, java.nio.file.attribute.PosixFilePermissions.fromString("rwx------"));
+            } catch (UnsupportedOperationException ignored) {}
         } catch (IOException e) {
             throw new RuntimeException("Cannot create data directory: " + dir, e);
         }
@@ -47,16 +48,19 @@ public class DeckStore {
 
     public void saveDeck(Deck deck) throws IOException {
         Path file = dir.resolve(sanitize(deck.getName()) + ".json");
-        java.io.File f = file.toFile();
-        if (f.createNewFile()) {
-            // 🛡️ Sentinel: Enforce strict file permissions for deck files to protect user data
-            f.setReadable(false, false);
-            f.setWritable(false, false);
-            f.setExecutable(false, false);
-            f.setReadable(true, true);
-            f.setWritable(true, true);
+        // 🛡️ Sentinel: Fix TOCTOU vulnerability by atomically creating file with secure permissions
+        try {
+            Files.createFile(file, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(
+                java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")));
+        } catch (java.nio.file.FileAlreadyExistsException e) {
+            try {
+                Files.setPosixFilePermissions(file, java.nio.file.attribute.PosixFilePermissions.fromString("rw-------"));
+            } catch (UnsupportedOperationException ignored) {}
+        } catch (UnsupportedOperationException e) {
+            if (!Files.exists(file)) Files.createFile(file);
         }
-        try (Writer w = Files.newBufferedWriter(file)) {
+        try (java.io.OutputStream os = Files.newOutputStream(file, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING, java.nio.file.StandardOpenOption.WRITE, java.nio.file.LinkOption.NOFOLLOW_LINKS);
+             Writer w = new java.io.OutputStreamWriter(os, java.nio.charset.StandardCharsets.UTF_8)) {
             gson.toJson(deck, w);
         }
         // ⚡ Bolt Optimization: Incrementally update the in-memory cache instead of invalidating it entirely.
