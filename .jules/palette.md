@@ -13,3 +13,7 @@
 ## 2024-05-28 - Treat empty CLI string input as safe cancellation
 **Learning:** For CLI inputs, empty string inputs can cause `NumberFormatException`s or unwanted errors when users unintentionally press Enter. Handling these empty inputs properly avoids error spam.
 **Action:** For CLI inputs using `Scanner`, explicitly handle empty string inputs (`s.isEmpty()`) to prevent exceptions on subsequent parsing operations, treating them as safe cancellations or defaults instead of application errors.
+
+## 2026-06-11 - Use Entity-Specific Confirmation Messages
+**Learning:** Generic success/error messages in CLI applications (e.g., "Deleted.") can leave users uncertain about whether their intended action succeeded on the correct entity.
+**Action:** Always include the specific entity's name or a strong identifier in success or error feedback messages rather than generic statements.
