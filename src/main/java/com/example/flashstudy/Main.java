@@ -43,19 +43,30 @@ public class Main {
             dirFile.setWritable(true, true);
             dirFile.setExecutable(true, true);
 
-            // 🛡️ Sentinel: Enforce strict file permissions for the error log file to prevent info leakage
-            java.io.File logFile = errorLogPath.toFile();
-            if (!logFile.exists()) {
-                logFile.createNewFile();
+            // 🛡️ Sentinel: Prevent TOCTOU vulnerabilities by using atomic file creation with POSIX permissions
+            java.util.Set<java.nio.file.attribute.PosixFilePermission> perms = java.nio.file.attribute.PosixFilePermissions.fromString("rw-------");
+            try {
+                Files.createFile(errorLogPath, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(perms));
+            } catch (java.nio.file.FileAlreadyExistsException e) {
+                // File exists, enforce permissions safely without following symlinks
+                java.nio.file.attribute.PosixFileAttributeView view = Files.getFileAttributeView(errorLogPath, java.nio.file.attribute.PosixFileAttributeView.class, java.nio.file.LinkOption.NOFOLLOW_LINKS);
+                if (view != null) {
+                    view.setPermissions(perms);
+                }
+            } catch (UnsupportedOperationException e) {
+                // Fallback for non-POSIX filesystems like Windows
+                java.io.File logFile = errorLogPath.toFile();
+                if (logFile.createNewFile()) {
+                    logFile.setReadable(false, false);
+                    logFile.setWritable(false, false);
+                    logFile.setExecutable(false, false);
+                    logFile.setReadable(true, true);
+                    logFile.setWritable(true, true);
+                }
             }
-            logFile.setReadable(false, false);
-            logFile.setWritable(false, false);
-            logFile.setExecutable(false, false);
-            logFile.setReadable(true, true);
-            logFile.setWritable(true, true);
 
-            try (FileWriter fw = new FileWriter(logFile, true);
-                 PrintWriter pw = new PrintWriter(fw)) {
+            try (java.io.OutputStream out = Files.newOutputStream(errorLogPath, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND, java.nio.file.StandardOpenOption.WRITE, java.nio.file.LinkOption.NOFOLLOW_LINKS);
+                 PrintWriter pw = new PrintWriter(new java.io.OutputStreamWriter(out, java.nio.charset.StandardCharsets.UTF_8))) {
                 pw.println("--- Error Logged at " + LocalDateTime.now() + " ---");
                 t.printStackTrace(pw);
                 pw.println();

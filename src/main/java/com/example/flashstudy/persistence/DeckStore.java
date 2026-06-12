@@ -47,16 +47,29 @@ public class DeckStore {
 
     public void saveDeck(Deck deck) throws IOException {
         Path file = dir.resolve(sanitize(deck.getName()) + ".json");
-        java.io.File f = file.toFile();
-        if (f.createNewFile()) {
-            // 🛡️ Sentinel: Enforce strict file permissions for deck files to protect user data
-            f.setReadable(false, false);
-            f.setWritable(false, false);
-            f.setExecutable(false, false);
-            f.setReadable(true, true);
-            f.setWritable(true, true);
+        // 🛡️ Sentinel: Prevent TOCTOU vulnerabilities by using atomic file creation with POSIX permissions
+        java.util.Set<java.nio.file.attribute.PosixFilePermission> perms = java.nio.file.attribute.PosixFilePermissions.fromString("rw-------");
+        try {
+            Files.createFile(file, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(perms));
+        } catch (java.nio.file.FileAlreadyExistsException e) {
+            // File exists, enforce permissions safely without following symlinks
+            java.nio.file.attribute.PosixFileAttributeView view = Files.getFileAttributeView(file, java.nio.file.attribute.PosixFileAttributeView.class, java.nio.file.LinkOption.NOFOLLOW_LINKS);
+            if (view != null) {
+                view.setPermissions(perms);
+            }
+        } catch (UnsupportedOperationException e) {
+            // Fallback for non-POSIX filesystems like Windows
+            java.io.File f = file.toFile();
+            if (f.createNewFile()) {
+                f.setReadable(false, false);
+                f.setWritable(false, false);
+                f.setExecutable(false, false);
+                f.setReadable(true, true);
+                f.setWritable(true, true);
+            }
         }
-        try (Writer w = Files.newBufferedWriter(file)) {
+        try (java.io.OutputStream out = Files.newOutputStream(file, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING, java.nio.file.StandardOpenOption.WRITE, java.nio.file.LinkOption.NOFOLLOW_LINKS);
+             Writer w = new java.io.OutputStreamWriter(out, java.nio.charset.StandardCharsets.UTF_8)) {
             gson.toJson(deck, w);
         }
         // ⚡ Bolt Optimization: Incrementally update the in-memory cache instead of invalidating it entirely.
