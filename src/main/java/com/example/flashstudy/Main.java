@@ -160,7 +160,7 @@ public class Main {
         }
         Deck deck = new Deck(name);
         store.saveDeck(deck);
-        System.out.println("Deck created.");
+        System.out.println("Deck '" + deck.getName() + "' created.");
     }
 
     private static void addCard() throws Exception {
@@ -182,7 +182,7 @@ public class Main {
         Flashcard card = new Flashcard(q, a);
         deck.addCard(card);
         store.saveDeck(deck);
-        System.out.println("Card added.");
+        System.out.println("Card added to deck '" + deck.getName() + "'.");
     }
 
     private static void studyDeck() throws Exception {
@@ -202,11 +202,11 @@ public class Main {
         String ans = scanner.nextLine().trim();
         if (ans.equalsIgnoreCase("yes")) {
             if (store.deleteDeck(deck.getName()))
-                System.out.println("Deleted.");
+                System.out.println("Deck '" + deck.getName() + "' deleted.");
             else
-                System.out.println("Could not delete.");
+                System.out.println("Could not delete deck '" + deck.getName() + "'.");
         } else {
-            System.out.println("Canceled.");
+            System.out.println("Canceled. Deck '" + deck.getName() + "' was not deleted.");
         }
     }
 }
