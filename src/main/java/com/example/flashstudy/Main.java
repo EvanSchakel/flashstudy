@@ -190,8 +190,13 @@ public class Main {
         if (deck == null)
             return;
         StudySession s = new StudySession(deck);
-        s.run(scanner);
-        store.saveDeck(deck);
+        boolean modified = s.run(scanner);
+
+        // ⚡ Bolt Optimization: Skip disk write if no flashcards were attempted during the session.
+        // Impact: Eliminates unnecessary disk I/O, reducing save latency when state is unmodified.
+        if (modified) {
+            store.saveDeck(deck);
+        }
     }
 
     private static void deleteDeck() throws Exception {
