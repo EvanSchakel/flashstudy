@@ -33,29 +33,49 @@ public class Main {
     private static void logError(Throwable t) {
         try {
             Path errorLogPath = Paths.get(System.getProperty("user.home"), ".flashstudy", "error.log");
-            Files.createDirectories(errorLogPath.getParent());
-            // 🛡️ Sentinel: Enforce strict file permissions for the error log directory
-            java.io.File dirFile = errorLogPath.getParent().toFile();
-            dirFile.setReadable(false, false);
-            dirFile.setWritable(false, false);
-            dirFile.setExecutable(false, false);
-            dirFile.setReadable(true, true);
-            dirFile.setWritable(true, true);
-            dirFile.setExecutable(true, true);
+            try {
+                java.util.Set<java.nio.file.attribute.PosixFilePermission> perms = java.nio.file.attribute.PosixFilePermissions.fromString("rwx------");
+                java.nio.file.attribute.FileAttribute<java.util.Set<java.nio.file.attribute.PosixFilePermission>> attr = java.nio.file.attribute.PosixFilePermissions.asFileAttribute(perms);
+                Files.createDirectories(errorLogPath.getParent(), attr);
+            } catch (UnsupportedOperationException e) {
+                Files.createDirectories(errorLogPath.getParent());
+                // 🛡️ Sentinel: Enforce strict file permissions for the error log directory
+                java.io.File dirFile = errorLogPath.getParent().toFile();
+                dirFile.setReadable(false, false);
+                dirFile.setWritable(false, false);
+                dirFile.setExecutable(false, false);
+                dirFile.setReadable(true, true);
+                dirFile.setWritable(true, true);
+                dirFile.setExecutable(true, true);
+            }
 
             // 🛡️ Sentinel: Enforce strict file permissions for the error log file to prevent info leakage
-            java.io.File logFile = errorLogPath.toFile();
-            if (!logFile.exists()) {
-                logFile.createNewFile();
+            try {
+                java.util.Set<java.nio.file.attribute.PosixFilePermission> perms = java.nio.file.attribute.PosixFilePermissions.fromString("rw-------");
+                try {
+                    Files.createFile(errorLogPath, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(perms));
+                } catch (java.nio.file.FileAlreadyExistsException e) {
+                    // Ignore
+                }
+                java.nio.file.attribute.PosixFileAttributeView view = Files.getFileAttributeView(errorLogPath, java.nio.file.attribute.PosixFileAttributeView.class, java.nio.file.LinkOption.NOFOLLOW_LINKS);
+                if (view != null) {
+                    view.setPermissions(perms);
+                }
+            } catch (UnsupportedOperationException e) {
+                java.io.File logFile = errorLogPath.toFile();
+                if (logFile.createNewFile()) {
+                    logFile.setReadable(false, false);
+                    logFile.setWritable(false, false);
+                    logFile.setExecutable(false, false);
+                    logFile.setReadable(true, true);
+                    logFile.setWritable(true, true);
+                }
             }
-            logFile.setReadable(false, false);
-            logFile.setWritable(false, false);
-            logFile.setExecutable(false, false);
-            logFile.setReadable(true, true);
-            logFile.setWritable(true, true);
 
-            try (FileWriter fw = new FileWriter(logFile, true);
+            try (java.io.OutputStream os = Files.newOutputStream(errorLogPath, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND, java.nio.file.StandardOpenOption.WRITE, java.nio.file.LinkOption.NOFOLLOW_LINKS);
+                 java.io.Writer fw = new java.io.OutputStreamWriter(os, java.nio.charset.StandardCharsets.UTF_8);
                  PrintWriter pw = new PrintWriter(fw)) {
+                // 🛡️ Sentinel: Atomically create files and prevent TOCTOU to securely save error log
                 pw.println("--- Error Logged at " + LocalDateTime.now() + " ---");
                 t.printStackTrace(pw);
                 pw.println();

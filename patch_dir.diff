@@ -1,0 +1,32 @@
+--- src/main/java/com/example/flashstudy/Main.java
++++ src/main/java/com/example/flashstudy/Main.java
+@@ -33,14 +33,21 @@
+     private static void logError(Throwable t) {
+         try {
+             Path errorLogPath = Paths.get(System.getProperty("user.home"), ".flashstudy", "error.log");
+-            Files.createDirectories(errorLogPath.getParent());
+-            // 🛡️ Sentinel: Enforce strict file permissions for the error log directory
+-            java.io.File dirFile = errorLogPath.getParent().toFile();
+-            dirFile.setReadable(false, false);
+-            dirFile.setWritable(false, false);
+-            dirFile.setExecutable(false, false);
+-            dirFile.setReadable(true, true);
+-            dirFile.setWritable(true, true);
+-            dirFile.setExecutable(true, true);
++            try {
++                java.util.Set<java.nio.file.attribute.PosixFilePermission> perms = java.nio.file.attribute.PosixFilePermissions.fromString("rwx------");
++                java.nio.file.attribute.FileAttribute<java.util.Set<java.nio.file.attribute.PosixFilePermission>> attr = java.nio.file.attribute.PosixFilePermissions.asFileAttribute(perms);
++                Files.createDirectories(errorLogPath.getParent(), attr);
++            } catch (UnsupportedOperationException e) {
++                Files.createDirectories(errorLogPath.getParent());
++                // 🛡️ Sentinel: Enforce strict file permissions for the error log directory
++                java.io.File dirFile = errorLogPath.getParent().toFile();
++                dirFile.setReadable(false, false);
++                dirFile.setWritable(false, false);
++                dirFile.setExecutable(false, false);
++                dirFile.setReadable(true, true);
++                dirFile.setWritable(true, true);
++                dirFile.setExecutable(true, true);
++            }
+
+             // 🛡️ Sentinel: Enforce strict file permissions for the error log file to prevent info leakage
