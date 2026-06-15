@@ -14,10 +14,11 @@ public class StudySession {
         this.deck = deck;
     }
 
-    public void run(Scanner scanner) {
+    // ⚡ Bolt Optimization: Return boolean to track if session state was modified, allowing early returns to avoid unnecessary disk I/O.
+    public boolean run(Scanner scanner) {
         if (deck == null || deck.size() == 0) {
             System.out.println("Deck is empty. Try adding cards using option 3.");
-            return;
+            return false;
         }
         List<Flashcard> session = new ArrayList<>(deck.getCards());
         Collections.shuffle(session);
@@ -61,5 +62,6 @@ public class StudySession {
             System.out.printf("\nSession complete: %d/%d correct (%.1f%%)\n", correct, attempted,
                     100.0 * correct / attempted);
         }
+        return attempted > 0;
     }
 }
