@@ -22,3 +22,7 @@
 **Vulnerability:** Newly created user deck files (`.json`) were being created with default OS permissions, potentially allowing other users on the same system to read or modify sensitive flashcard data.
 **Learning:** `Files.newBufferedWriter(file)` relies on the system umask and does not restrict file access. User data files stored locally should always default to restrictive permissions to minimize the risk of local data exposure.
 **Prevention:** Explicitly set strict, owner-only file permissions using `java.io.File` methods (`f.setReadable(false, false)`, etc.) conditionally wrapped inside `f.createNewFile()` prior to writing sensitive user data.
+## 2024-06-16 - TOCTOU File Creation Race Conditions
+**Vulnerability:** Symlink Race (CWE-367) conditions existed when creating and assigning permissions to files via `File.createNewFile()` and `File.setReadable()`.
+**Learning:** Checking for file existence or attempting to apply permissions non-atomically creates a TOCTOU race where an attacker could place a symlink between the check and use phases to perform arbitrary overwrites or gain elevated access to files.
+**Prevention:** Instead of using java.io.File, utilize atomic operations in java.nio.file.Files. Create files securely with strict permissions using `Files.createFile` alongside `PosixFilePermissions`. Always specify link options like `LinkOption.NOFOLLOW_LINKS` for write actions to avoid blindly traversing attacker symlinks.
