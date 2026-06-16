@@ -47,16 +47,21 @@ public class DeckStore {
 
     public void saveDeck(Deck deck) throws IOException {
         Path file = dir.resolve(sanitize(deck.getName()) + ".json");
-        java.io.File f = file.toFile();
-        if (f.createNewFile()) {
-            // 🛡️ Sentinel: Enforce strict file permissions for deck files to protect user data
-            f.setReadable(false, false);
-            f.setWritable(false, false);
-            f.setExecutable(false, false);
-            f.setReadable(true, true);
-            f.setWritable(true, true);
+        try {
+            java.util.Set<java.nio.file.attribute.PosixFilePermission> p = java.nio.file.attribute.PosixFilePermissions.fromString("rw-------");
+            Files.createFile(file, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(p));
+        } catch (java.nio.file.FileAlreadyExistsException e) {
+            java.nio.file.attribute.PosixFileAttributeView v = Files.getFileAttributeView(file, java.nio.file.attribute.PosixFileAttributeView.class, java.nio.file.LinkOption.NOFOLLOW_LINKS);
+            if (v != null) v.setPermissions(java.nio.file.attribute.PosixFilePermissions.fromString("rw-------"));
+        } catch (UnsupportedOperationException e) {
+            java.io.File f = file.toFile();
+            if (f.createNewFile()) {
+                f.setReadable(false, false); f.setWritable(false, false); f.setExecutable(false, false);
+                f.setReadable(true, true); f.setWritable(true, true);
+            }
         }
-        try (Writer w = Files.newBufferedWriter(file)) {
+        try (java.io.OutputStream os = Files.newOutputStream(file, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING, java.nio.file.StandardOpenOption.WRITE, java.nio.file.LinkOption.NOFOLLOW_LINKS);
+             Writer w = new java.io.OutputStreamWriter(os, java.nio.charset.StandardCharsets.UTF_8)) {
             gson.toJson(deck, w);
         }
         // ⚡ Bolt Optimization: Incrementally update the in-memory cache instead of invalidating it entirely.
