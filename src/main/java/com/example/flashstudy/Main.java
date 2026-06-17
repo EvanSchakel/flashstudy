@@ -190,8 +190,12 @@ public class Main {
         if (deck == null)
             return;
         StudySession s = new StudySession(deck);
-        s.run(scanner);
-        store.saveDeck(deck);
+        // ⚡ Bolt Optimization: Skip unnecessary disk I/O overhead by tracking if the state was modified during the interactive session.
+        // Expected Impact: Eliminates slow disk writes when a study session is aborted without attempting any cards.
+        boolean modified = s.run(scanner);
+        if (modified) {
+            store.saveDeck(deck);
+        }
     }
 
     private static void deleteDeck() throws Exception {
