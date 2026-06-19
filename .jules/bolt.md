@@ -21,3 +21,7 @@
 ## 2026-05-28 - In-Memory Caching and Data Encapsulation
 **Learning:** Returning objects directly from an internal cache can lead to issues if those objects are mutable. Additionally, intercepting `loadDeck` to return directly from the cache bypassed the `NoSuchFileException` that the method contract guarantees if a deck is not found, altering the expected behavior of the system and potentially causing `NullPointerException` in calling code.
 **Action:** When working with caching, ensure that fetching from the cache maintains the original method's semantics (e.g., throwing expected exceptions). Also, do not cache mutable objects and then serve references to them. It is generally safer to let operations like `loadDeck` (which fetches a specific entity) continue hitting the disk unless specifically designed to return immutable copies or defensive copies from the cache.
+
+## 2026-05-28 - Skip Redundant Disk I/O on Unmodified Entities
+**Learning:** Interactive sessions (like studying flashcards) may conclude without the user actually modifying any underlying state (e.g., exiting before answering any cards). Saving unconditionally in these cases causes unnecessary disk I/O overhead.
+**Action:** Always track whether an entity's state was actually modified during an interactive session (using boolean returns or dirty flags) and use early returns to skip redundant save operations to avoid unnecessary disk I/O.
