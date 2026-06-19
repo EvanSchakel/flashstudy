@@ -33,29 +33,47 @@ public class Main {
     private static void logError(Throwable t) {
         try {
             Path errorLogPath = Paths.get(System.getProperty("user.home"), ".flashstudy", "error.log");
-            Files.createDirectories(errorLogPath.getParent());
-            // 🛡️ Sentinel: Enforce strict file permissions for the error log directory
-            java.io.File dirFile = errorLogPath.getParent().toFile();
-            dirFile.setReadable(false, false);
-            dirFile.setWritable(false, false);
-            dirFile.setExecutable(false, false);
-            dirFile.setReadable(true, true);
-            dirFile.setWritable(true, true);
-            dirFile.setExecutable(true, true);
-
-            // 🛡️ Sentinel: Enforce strict file permissions for the error log file to prevent info leakage
-            java.io.File logFile = errorLogPath.toFile();
-            if (!logFile.exists()) {
-                logFile.createNewFile();
+            Path parentDir = errorLogPath.getParent();
+            try {
+                java.util.Set<java.nio.file.attribute.PosixFilePermission> dirPerms = java.nio.file.attribute.PosixFilePermissions.fromString("rwx------");
+                Files.createDirectories(parentDir, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(dirPerms));
+                java.nio.file.attribute.PosixFileAttributeView view = java.nio.file.Files.getFileAttributeView(parentDir, java.nio.file.attribute.PosixFileAttributeView.class, java.nio.file.LinkOption.NOFOLLOW_LINKS);
+                if (view != null) {
+                    view.setPermissions(dirPerms);
+                }
+            } catch (UnsupportedOperationException e) {
+                Files.createDirectories(parentDir);
+                java.io.File dirFile = parentDir.toFile();
+                dirFile.setReadable(false, false);
+                dirFile.setWritable(false, false);
+                dirFile.setExecutable(false, false);
+                dirFile.setReadable(true, true);
+                dirFile.setWritable(true, true);
+                dirFile.setExecutable(true, true);
             }
-            logFile.setReadable(false, false);
-            logFile.setWritable(false, false);
-            logFile.setExecutable(false, false);
-            logFile.setReadable(true, true);
-            logFile.setWritable(true, true);
 
-            try (FileWriter fw = new FileWriter(logFile, true);
-                 PrintWriter pw = new PrintWriter(fw)) {
+            // 🛡️ Sentinel: Fix TOCTOU vulnerability by using atomic file creation and secure stream writing
+            try {
+                java.util.Set<java.nio.file.attribute.PosixFilePermission> filePerms = java.nio.file.attribute.PosixFilePermissions.fromString("rw-------");
+                Files.createFile(errorLogPath, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(filePerms));
+            } catch (java.nio.file.FileAlreadyExistsException e) {
+                java.nio.file.attribute.PosixFileAttributeView view = java.nio.file.Files.getFileAttributeView(errorLogPath, java.nio.file.attribute.PosixFileAttributeView.class, java.nio.file.LinkOption.NOFOLLOW_LINKS);
+                if (view != null) {
+                    view.setPermissions(java.nio.file.attribute.PosixFilePermissions.fromString("rw-------"));
+                }
+            } catch (UnsupportedOperationException e) {
+                java.io.File logFile = errorLogPath.toFile();
+                if (logFile.createNewFile()) {
+                    logFile.setReadable(false, false);
+                    logFile.setWritable(false, false);
+                    logFile.setExecutable(false, false);
+                    logFile.setReadable(true, true);
+                    logFile.setWritable(true, true);
+                }
+            }
+
+            try (java.io.OutputStream os = Files.newOutputStream(errorLogPath, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND, java.nio.file.StandardOpenOption.WRITE, java.nio.file.LinkOption.NOFOLLOW_LINKS);
+                 PrintWriter pw = new PrintWriter(new java.io.OutputStreamWriter(os, java.nio.charset.StandardCharsets.UTF_8))) {
                 pw.println("--- Error Logged at " + LocalDateTime.now() + " ---");
                 t.printStackTrace(pw);
                 pw.println();
