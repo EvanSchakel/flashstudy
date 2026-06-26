@@ -47,16 +47,30 @@ public class DeckStore {
 
     public void saveDeck(Deck deck) throws IOException {
         Path file = dir.resolve(sanitize(deck.getName()) + ".json");
-        java.io.File f = file.toFile();
-        if (f.createNewFile()) {
-            // 🛡️ Sentinel: Enforce strict file permissions for deck files to protect user data
-            f.setReadable(false, false);
-            f.setWritable(false, false);
-            f.setExecutable(false, false);
-            f.setReadable(true, true);
-            f.setWritable(true, true);
+        try {
+            java.util.Set<java.nio.file.attribute.PosixFilePermission> perms = java.util.EnumSet.of(
+                    java.nio.file.attribute.PosixFilePermission.OWNER_READ,
+                    java.nio.file.attribute.PosixFilePermission.OWNER_WRITE);
+            Files.createFile(file, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(perms));
+        } catch (UnsupportedOperationException e) {
+            java.io.File f = file.toFile();
+            if (f.createNewFile()) {
+                // 🛡️ Sentinel: Enforce strict file permissions for deck files to protect user data
+                f.setReadable(false, false);
+                f.setWritable(false, false);
+                f.setExecutable(false, false);
+                f.setReadable(true, true);
+                f.setWritable(true, true);
+            }
+        } catch (java.nio.file.FileAlreadyExistsException e) {
+            // File already exists, no need to recreate
         }
-        try (Writer w = Files.newBufferedWriter(file)) {
+        try (java.io.OutputStream out = Files.newOutputStream(file,
+                java.nio.file.StandardOpenOption.CREATE,
+                java.nio.file.StandardOpenOption.TRUNCATE_EXISTING,
+                java.nio.file.StandardOpenOption.WRITE,
+                java.nio.file.LinkOption.NOFOLLOW_LINKS);
+             Writer w = new java.io.OutputStreamWriter(out, java.nio.charset.StandardCharsets.UTF_8)) {
             gson.toJson(deck, w);
         }
         // ⚡ Bolt Optimization: Incrementally update the in-memory cache instead of invalidating it entirely.
