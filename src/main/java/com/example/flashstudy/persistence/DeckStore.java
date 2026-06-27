@@ -31,15 +31,22 @@ public class DeckStore {
     public DeckStore(Path dir) {
         this.dir = dir;
         try {
-            Files.createDirectories(dir);
-            // 🛡️ Sentinel: Enforce strict file permissions for the storage directory to protect user data
-            java.io.File dirFile = dir.toFile();
-            dirFile.setReadable(false, false);
-            dirFile.setWritable(false, false);
-            dirFile.setExecutable(false, false);
-            dirFile.setReadable(true, true);
-            dirFile.setWritable(true, true);
-            dirFile.setExecutable(true, true);
+            // 🛡️ Sentinel: Fix TOCTOU vulnerability by using atomic Files.createDirectories with POSIX permissions
+            try {
+                java.util.Set<java.nio.file.attribute.PosixFilePermission> perms = java.nio.file.attribute.PosixFilePermissions.fromString("rwx------");
+                Files.createDirectories(dir, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(perms));
+            } catch (UnsupportedOperationException e) {
+                // Fallback for non-POSIX systems
+                java.io.File dirFile = dir.toFile();
+                if (dirFile.mkdirs()) {
+                    dirFile.setReadable(false, false);
+                    dirFile.setWritable(false, false);
+                    dirFile.setExecutable(false, false);
+                    dirFile.setReadable(true, true);
+                    dirFile.setWritable(true, true);
+                    dirFile.setExecutable(true, true);
+                }
+            }
         } catch (IOException e) {
             throw new RuntimeException("Cannot create data directory: " + dir, e);
         }
@@ -47,16 +54,25 @@ public class DeckStore {
 
     public void saveDeck(Deck deck) throws IOException {
         Path file = dir.resolve(sanitize(deck.getName()) + ".json");
-        java.io.File f = file.toFile();
-        if (f.createNewFile()) {
-            // 🛡️ Sentinel: Enforce strict file permissions for deck files to protect user data
-            f.setReadable(false, false);
-            f.setWritable(false, false);
-            f.setExecutable(false, false);
-            f.setReadable(true, true);
-            f.setWritable(true, true);
+        // 🛡️ Sentinel: Fix TOCTOU vulnerability by using atomic Files.createFile with POSIX permissions and NOFOLLOW_LINKS
+        try {
+            java.util.Set<java.nio.file.attribute.PosixFilePermission> perms = java.nio.file.attribute.PosixFilePermissions.fromString("rw-------");
+            Files.createFile(file, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(perms));
+        } catch (java.nio.file.FileAlreadyExistsException e) {
+            // Do not overwrite permissions on pre-existing files to respect user configurations
+        } catch (UnsupportedOperationException e) {
+            // Fallback for non-POSIX systems
+            java.io.File f = file.toFile();
+            if (f.createNewFile()) {
+                f.setReadable(false, false);
+                f.setWritable(false, false);
+                f.setExecutable(false, false);
+                f.setReadable(true, true);
+                f.setWritable(true, true);
+            }
         }
-        try (Writer w = Files.newBufferedWriter(file)) {
+        try (java.io.OutputStream os = Files.newOutputStream(file, java.nio.file.LinkOption.NOFOLLOW_LINKS, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING, java.nio.file.StandardOpenOption.WRITE);
+             Writer w = new java.io.OutputStreamWriter(os, java.nio.charset.StandardCharsets.UTF_8)) {
             gson.toJson(deck, w);
         }
         // ⚡ Bolt Optimization: Incrementally update the in-memory cache instead of invalidating it entirely.
