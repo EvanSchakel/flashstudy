@@ -4,7 +4,6 @@ import com.example.flashstudy.model.Deck;
 import com.example.flashstudy.model.Flashcard;
 import com.example.flashstudy.persistence.DeckStore;
 import com.example.flashstudy.service.StudySession;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,18 +42,22 @@ public class Main {
             dirFile.setWritable(true, true);
             dirFile.setExecutable(true, true);
 
-            // 🛡️ Sentinel: Enforce strict file permissions for the error log file to prevent info leakage
-            java.io.File logFile = errorLogPath.toFile();
-            if (!logFile.exists()) {
-                logFile.createNewFile();
+            // 🛡️ Sentinel: Prevent TOCTOU symlink race conditions during log file creation
+            try {
+                java.nio.file.Files.createFile(errorLogPath, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")));
+            } catch (java.nio.file.FileAlreadyExistsException e) {
+            } catch (UnsupportedOperationException e) {
+                java.io.File logFile = errorLogPath.toFile();
+                if (logFile.createNewFile()) {
+                    logFile.setReadable(false, false);
+                    logFile.setWritable(false, false);
+                    logFile.setExecutable(false, false);
+                    logFile.setReadable(true, true);
+                    logFile.setWritable(true, true);
+                }
             }
-            logFile.setReadable(false, false);
-            logFile.setWritable(false, false);
-            logFile.setExecutable(false, false);
-            logFile.setReadable(true, true);
-            logFile.setWritable(true, true);
 
-            try (FileWriter fw = new FileWriter(logFile, true);
+            try (java.io.Writer fw = new java.io.OutputStreamWriter(java.nio.file.Files.newOutputStream(errorLogPath, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND, java.nio.file.StandardOpenOption.WRITE, java.nio.file.LinkOption.NOFOLLOW_LINKS), java.nio.charset.StandardCharsets.UTF_8);
                  PrintWriter pw = new PrintWriter(fw)) {
                 pw.println("--- Error Logged at " + LocalDateTime.now() + " ---");
                 t.printStackTrace(pw);
