@@ -8,7 +8,11 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,15 +35,19 @@ public class DeckStore {
     public DeckStore(Path dir) {
         this.dir = dir;
         try {
-            Files.createDirectories(dir);
-            // 🛡️ Sentinel: Enforce strict file permissions for the storage directory to protect user data
-            java.io.File dirFile = dir.toFile();
-            dirFile.setReadable(false, false);
-            dirFile.setWritable(false, false);
-            dirFile.setExecutable(false, false);
-            dirFile.setReadable(true, true);
-            dirFile.setWritable(true, true);
-            dirFile.setExecutable(true, true);
+            try {
+                Files.createDirectories(dir, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------")));
+            } catch (UnsupportedOperationException e) {
+                Files.createDirectories(dir);
+                // 🛡️ Sentinel: Enforce strict file permissions for the storage directory to protect user data
+                java.io.File dirFile = dir.toFile();
+                dirFile.setReadable(false, false);
+                dirFile.setWritable(false, false);
+                dirFile.setExecutable(false, false);
+                dirFile.setReadable(true, true);
+                dirFile.setWritable(true, true);
+                dirFile.setExecutable(true, true);
+            }
         } catch (IOException e) {
             throw new RuntimeException("Cannot create data directory: " + dir, e);
         }
@@ -47,16 +55,26 @@ public class DeckStore {
 
     public void saveDeck(Deck deck) throws IOException {
         Path file = dir.resolve(sanitize(deck.getName()) + ".json");
-        java.io.File f = file.toFile();
-        if (f.createNewFile()) {
-            // 🛡️ Sentinel: Enforce strict file permissions for deck files to protect user data
-            f.setReadable(false, false);
-            f.setWritable(false, false);
-            f.setExecutable(false, false);
-            f.setReadable(true, true);
-            f.setWritable(true, true);
+        try {
+            Files.createFile(file, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")));
+        } catch (java.nio.file.FileAlreadyExistsException e) {
+            // File exists, proceed to overwrite safely
+        } catch (UnsupportedOperationException e) {
+            java.io.File f = file.toFile();
+            if (f.createNewFile()) {
+                // 🛡️ Sentinel: Enforce strict file permissions for deck files to protect user data
+                f.setReadable(false, false);
+                f.setWritable(false, false);
+                f.setExecutable(false, false);
+                f.setReadable(true, true);
+                f.setWritable(true, true);
+            }
         }
-        try (Writer w = Files.newBufferedWriter(file)) {
+        try (Writer w = new java.io.OutputStreamWriter(Files.newOutputStream(file,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING,
+                StandardOpenOption.WRITE,
+                LinkOption.NOFOLLOW_LINKS), StandardCharsets.UTF_8)) {
             gson.toJson(deck, w);
         }
         // ⚡ Bolt Optimization: Incrementally update the in-memory cache instead of invalidating it entirely.
