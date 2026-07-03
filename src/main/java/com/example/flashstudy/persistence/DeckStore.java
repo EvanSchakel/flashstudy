@@ -47,16 +47,29 @@ public class DeckStore {
 
     public void saveDeck(Deck deck) throws IOException {
         Path file = dir.resolve(sanitize(deck.getName()) + ".json");
-        java.io.File f = file.toFile();
-        if (f.createNewFile()) {
-            // 🛡️ Sentinel: Enforce strict file permissions for deck files to protect user data
-            f.setReadable(false, false);
-            f.setWritable(false, false);
-            f.setExecutable(false, false);
-            f.setReadable(true, true);
-            f.setWritable(true, true);
+        try {
+            // 🛡️ Sentinel: Prevent Symlink Race (CWE-367) by atomically creating file with POSIX permissions
+            Files.createFile(file, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(
+                    java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")));
+        } catch (java.nio.file.FileAlreadyExistsException e) {
+            // File already exists; safe to overwrite.
+        } catch (UnsupportedOperationException e) {
+            // 🛡️ Sentinel: Fallback for non-POSIX systems (e.g. Windows)
+            java.io.File f = file.toFile();
+            if (f.createNewFile()) {
+                f.setReadable(false, false);
+                f.setWritable(false, false);
+                f.setExecutable(false, false);
+                f.setReadable(true, true);
+                f.setWritable(true, true);
+            }
         }
-        try (Writer w = Files.newBufferedWriter(file)) {
+        try (java.io.OutputStream os = Files.newOutputStream(file,
+                     java.nio.file.LinkOption.NOFOLLOW_LINKS,
+                     java.nio.file.StandardOpenOption.CREATE,
+                     java.nio.file.StandardOpenOption.TRUNCATE_EXISTING,
+                     java.nio.file.StandardOpenOption.WRITE);
+             Writer w = new java.io.OutputStreamWriter(os, java.nio.charset.StandardCharsets.UTF_8)) {
             gson.toJson(deck, w);
         }
         // ⚡ Bolt Optimization: Incrementally update the in-memory cache instead of invalidating it entirely.
