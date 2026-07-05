@@ -44,17 +44,25 @@ public class Main {
             dirFile.setExecutable(true, true);
 
             // 🛡️ Sentinel: Enforce strict file permissions for the error log file to prevent info leakage
-            java.io.File logFile = errorLogPath.toFile();
-            if (!logFile.exists()) {
-                logFile.createNewFile();
+            try {
+                Files.createFile(errorLogPath, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(
+                    java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")));
+            } catch (java.nio.file.FileAlreadyExistsException e) {
+                // Ignore if file already exists
+            } catch (UnsupportedOperationException e) {
+                java.io.File logFile = errorLogPath.toFile();
+                if (logFile.createNewFile()) {
+                    logFile.setReadable(false, false);
+                    logFile.setWritable(false, false);
+                    logFile.setExecutable(false, false);
+                    logFile.setReadable(true, true);
+                    logFile.setWritable(true, true);
+                }
             }
-            logFile.setReadable(false, false);
-            logFile.setWritable(false, false);
-            logFile.setExecutable(false, false);
-            logFile.setReadable(true, true);
-            logFile.setWritable(true, true);
 
-            try (FileWriter fw = new FileWriter(logFile, true);
+            // 🛡️ Sentinel: Prevent symlink race conditions by opening with NOFOLLOW_LINKS
+            try (java.io.OutputStream os = Files.newOutputStream(errorLogPath, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.WRITE, java.nio.file.StandardOpenOption.APPEND, java.nio.file.LinkOption.NOFOLLOW_LINKS);
+                 java.io.Writer fw = new java.io.OutputStreamWriter(os, java.nio.charset.StandardCharsets.UTF_8);
                  PrintWriter pw = new PrintWriter(fw)) {
                 pw.println("--- Error Logged at " + LocalDateTime.now() + " ---");
                 t.printStackTrace(pw);
