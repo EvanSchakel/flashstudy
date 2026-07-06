@@ -13,3 +13,7 @@
 ## 2024-05-28 - Treat empty CLI string input as safe cancellation
 **Learning:** For CLI inputs, empty string inputs can cause `NumberFormatException`s or unwanted errors when users unintentionally press Enter. Handling these empty inputs properly avoids error spam.
 **Action:** For CLI inputs using `Scanner`, explicitly handle empty string inputs (`s.isEmpty()`) to prevent exceptions on subsequent parsing operations, treating them as safe cancellations or defaults instead of application errors.
+
+## 2026-07-06 - CLI Entity Context
+**Learning:** Generic success/error messages in a CLI (like "Deck created" or "Deleted") lack sufficient context and can leave users uncertain if the correct entity was modified, especially when manipulating multiple items sequentially.
+**Action:** Always include specific entity identifiers (e.g., the deck's name) in CLI output messages to provide immediate, reassuring feedback on the exact item being created, updated, or deleted.
