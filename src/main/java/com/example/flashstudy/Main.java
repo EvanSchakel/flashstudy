@@ -33,29 +33,37 @@ public class Main {
     private static void logError(Throwable t) {
         try {
             Path errorLogPath = Paths.get(System.getProperty("user.home"), ".flashstudy", "error.log");
-            Files.createDirectories(errorLogPath.getParent());
-            // 🛡️ Sentinel: Enforce strict file permissions for the error log directory
-            java.io.File dirFile = errorLogPath.getParent().toFile();
-            dirFile.setReadable(false, false);
-            dirFile.setWritable(false, false);
-            dirFile.setExecutable(false, false);
-            dirFile.setReadable(true, true);
-            dirFile.setWritable(true, true);
-            dirFile.setExecutable(true, true);
+            try {
+                Files.createDirectories(errorLogPath.getParent(), java.nio.file.attribute.PosixFilePermissions.asFileAttribute(java.nio.file.attribute.PosixFilePermissions.fromString("rwx------")));
+            } catch (UnsupportedOperationException e) {
+                Files.createDirectories(errorLogPath.getParent());
+                java.io.File dirFile = errorLogPath.getParent().toFile();
+                dirFile.setReadable(false, false);
+                dirFile.setWritable(false, false);
+                dirFile.setExecutable(false, false);
+                dirFile.setReadable(true, true);
+                dirFile.setWritable(true, true);
+                dirFile.setExecutable(true, true);
+            }
 
             // 🛡️ Sentinel: Enforce strict file permissions for the error log file to prevent info leakage
-            java.io.File logFile = errorLogPath.toFile();
-            if (!logFile.exists()) {
-                logFile.createNewFile();
+            try {
+                Files.createFile(errorLogPath, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")));
+            } catch (java.nio.file.FileAlreadyExistsException ignored) {
+            } catch (UnsupportedOperationException e) {
+                java.io.File logFile = errorLogPath.toFile();
+                if (logFile.createNewFile()) {
+                    logFile.setReadable(false, false);
+                    logFile.setWritable(false, false);
+                    logFile.setExecutable(false, false);
+                    logFile.setReadable(true, true);
+                    logFile.setWritable(true, true);
+                }
             }
-            logFile.setReadable(false, false);
-            logFile.setWritable(false, false);
-            logFile.setExecutable(false, false);
-            logFile.setReadable(true, true);
-            logFile.setWritable(true, true);
 
-            try (FileWriter fw = new FileWriter(logFile, true);
-                 PrintWriter pw = new PrintWriter(fw)) {
+            // 🛡️ Sentinel: Prevent TOCTOU vulnerabilities and symlink attacks
+            try (java.io.OutputStream os = Files.newOutputStream(errorLogPath, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.WRITE, java.nio.file.StandardOpenOption.APPEND, java.nio.file.LinkOption.NOFOLLOW_LINKS);
+                 PrintWriter pw = new PrintWriter(new java.io.OutputStreamWriter(os, java.nio.charset.StandardCharsets.UTF_8))) {
                 pw.println("--- Error Logged at " + LocalDateTime.now() + " ---");
                 t.printStackTrace(pw);
                 pw.println();
