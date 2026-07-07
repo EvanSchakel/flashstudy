@@ -21,3 +21,6 @@
 ## 2026-05-28 - In-Memory Caching and Data Encapsulation
 **Learning:** Returning objects directly from an internal cache can lead to issues if those objects are mutable. Additionally, intercepting `loadDeck` to return directly from the cache bypassed the `NoSuchFileException` that the method contract guarantees if a deck is not found, altering the expected behavior of the system and potentially causing `NullPointerException` in calling code.
 **Action:** When working with caching, ensure that fetching from the cache maintains the original method's semantics (e.g., throwing expected exceptions). Also, do not cache mutable objects and then serve references to them. It is generally safer to let operations like `loadDeck` (which fetches a specific entity) continue hitting the disk unless specifically designed to return immutable copies or defensive copies from the cache.
+## 2024-05-24 - Skip saving unmodified interactive state
+**Learning:** The CLI was eagerly saving deck state after every study session, even when the user aborted before attempting any cards. This caused unnecessary I/O overhead.
+**Action:** When tracking interactive modifications, return a boolean from the session runner to indicate if the entity state actually changed, and use an early return/conditional to skip the expensive save operation if it was unmodified.
