@@ -33,17 +33,19 @@ public class StudySession {
                 break;
             }
             attempted++;
-            System.out.println("Answer:\n" + c.getAnswer());
+            System.out.println("\nAnswer:\n" + c.getAnswer());
 
             boolean got = false;
             while (true) {
-                System.out.print("Did you get it right? (y/n): ");
+                System.out.print("\nDid you get it right? (y/n): ");
                 String ans = scanner.nextLine().trim().toLowerCase();
                 if (ans.equals("y") || ans.equals("yes")) {
                     got = true;
+                    System.out.println("✓ Marked as correct.");
                     break;
                 } else if (ans.equals("n") || ans.equals("no")) {
                     got = false;
+                    System.out.println("✗ Marked as incorrect.");
                     break;
                 } else {
                     System.out.println("Please enter 'y' or 'n'.");
