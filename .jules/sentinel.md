@@ -22,3 +22,7 @@
 **Vulnerability:** Newly created user deck files (`.json`) were being created with default OS permissions, potentially allowing other users on the same system to read or modify sensitive flashcard data.
 **Learning:** `Files.newBufferedWriter(file)` relies on the system umask and does not restrict file access. User data files stored locally should always default to restrictive permissions to minimize the risk of local data exposure.
 **Prevention:** Explicitly set strict, owner-only file permissions using `java.io.File` methods (`f.setReadable(false, false)`, etc.) conditionally wrapped inside `f.createNewFile()` prior to writing sensitive user data.
+## 2024-05-24 - File Creation TOCTOU Vulnerability
+**Vulnerability:** File and directory creation using `java.io.File` followed by permission changes (e.g., `setReadable()`) creates a race condition (TOCTOU) and potential symlink attacks.
+**Learning:** This approach leaves a brief window where files have default permissions before being secured, which could be exploited on multi-user systems.
+**Prevention:** Use atomic operations like `Files.createFile` and `Files.createDirectories` with POSIX file permissions via `PosixFilePermissions.asFileAttribute()`. Include `UnsupportedOperationException` fallback for non-POSIX systems, and use `Files.newOutputStream` with `LinkOption.NOFOLLOW_LINKS` for secure writing.
