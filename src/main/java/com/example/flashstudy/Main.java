@@ -67,7 +67,7 @@ public class Main {
 
     private static void loop() {
         while (true) {
-            System.out.println(
+            System.out.print(
                     "\nFlashStudy - menu:\n1) List decks\n2) Create deck\n3) Add card\n4) Study deck\n5) Delete deck\n0) Exit\nChoose: ");
 
             if (!scanner.hasNextLine()) {
